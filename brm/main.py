@@ -8,10 +8,10 @@ import sys
 import commands
 
 def main():
-    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.INFO)
-
     parser = argparse.ArgumentParser(description='Publish releases of BISmark images, packages, and experiments')
     parser.add_argument('--root', dest='root', action='store', default='~/bismark-releases', help='store release configuration in this directory')
+    log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITITCAL']
+    parser.add_argument('--loglevel', dest='loglevel', action='store', choices=log_levels, default='WARNING', help='control verbosity of logging')
     subparsers = parser.add_subparsers(title='commands')
 
     parser_new_release = subparsers.add_parser('new-release', help='create a new release')
@@ -79,10 +79,12 @@ def main():
 
     args = parser.parse_args()
     args.root = os.path.expanduser(args.root)
-    result = args.handler(args)
-    if result is not None:
-        print result
-        sys.exit(1)
+
+    logging.basicConfig(format='%(asctime)s %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p',
+                        level=getattr(logging, args.loglevel))
+
+    args.handler(args)
 
 if __name__ == '__main__':
     main()
