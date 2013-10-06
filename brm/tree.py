@@ -82,9 +82,38 @@ class BismarkReleasesTree(object):
             node_groups.remove_from_group(name, node)
         node_groups.write_to_files()
 
+    def upgrade_package(self, release_name, name, version, architecture, group_names):
+        bismark_release = release.BismarkRelease(self._release_path(release_name))
+        node_groups = groups.NodeGroups(self._groups_path())
+        for group_name in group_names:
+            if group_name in node_groups.groups:
+                for node in node_groups.nodes_in_group(group_name):
+                    bismark_release.upgrade_package(node, name, version, architecture)
+            else:
+                bismark_release.upgrade_package(group_name, name, version, architecture)
+        bismark_release.save()
+
+    def upgrades(self, release_name, architecture, group_name, packages):
+        bismark_release = release.BismarkRelease(self._release_path(release_name))
+        node_groups = groups.NodeGroups(self._groups_path())
+        if group_name in node_groups.groups:
+            nodes = node_groups.nodes_in_group(group_name)
+        else:
+            nodes = [group_name]
+        upgrades = set()
+        if packages == []:
+            for package in bismark_release.builtin_packages:
+                packages.append(package.name)
+        for package in packages:
+            for node in nodes:
+                node_package = bismark_release.get_upgrade(node, package, architecture)
+                if node_package is None:
+                    continue
+                upgrades.add(node_package)
+        return upgrades
+
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
 
     def _groups_path(self):
         return os.path.join(self._root, 'groups')
-

@@ -66,3 +66,15 @@ def list_group(args):
     releases_tree = tree.BismarkReleasesTree(releases_root)
     for node in releases_tree.nodes_in_group(args.name):
         print node
+
+def upgrade_package(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.upgrade_package(args.release, args.package, args.version, args.architecture, args.group)
+
+def list_upgrades(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    upgrades = releases_tree.upgrades(args.release, args.architecture, args.group, args.package)
+    for upgrade in sorted(upgrades):
+        print ' '.join(upgrade)

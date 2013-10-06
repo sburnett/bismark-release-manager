@@ -62,6 +62,21 @@ def main():
     parser_remove_from_group.add_argument('node', nargs='+', type=str, action='store', help='nodes to remove')
     parser_remove_from_group.set_defaults(handler=commands.remove_from_group)
 
+    parser_upgrade_package = subparsers.add_parser('upgrade-package', help='upgrade a builtin package on a set of routers')
+    parser_upgrade_package.add_argument('release', type=str, action='store', help='upgrade package for this release (e.g., quirm)')
+    parser_upgrade_package.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_upgrade_package.add_argument('package', type=str, action='store', help='name of the builtin package to upgrade')
+    parser_upgrade_package.add_argument('version', type=str, action='store', help='new version of the package')
+    parser_upgrade_package.add_argument('group', nargs='+', type=str, action='store', help='upgrade on this group of routers')
+    parser_upgrade_package.set_defaults(handler=commands.upgrade_package)
+
+    parser_list_upgrades = subparsers.add_parser('list-upgrades', help='list package upgrades for nodes')
+    parser_list_upgrades.add_argument('release', type=str, action='store', help='show upgrades from this release (e.g., quirm)')
+    parser_list_upgrades.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_list_upgrades.add_argument('group', type=str, action='store', help='upgrade on this group of routers')
+    parser_list_upgrades.add_argument('package', nargs='*', type=str, action='store', help='show upgrades of these packages')
+    parser_list_upgrades.set_defaults(handler=commands.list_upgrades)
+
     args = parser.parse_args()
     args.root = os.path.expanduser(args.root)
     result = args.handler(args)

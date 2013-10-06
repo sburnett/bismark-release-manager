@@ -27,6 +27,13 @@ class LocatedPackage(_LocatedPackage):
     def package(self):
         return Package(self.name, self.version, self.architecture)
 
+_NodePackage = namedtuple('NodePackage',
+                          ['node', 'name', 'version', 'architecture'])
+class NodePackage(_NodePackage):
+    @property
+    def package(self):
+        return Package(self.name, self.version, self.architecture)
+
 PackageDirectory = namedtuple('PackageDirectory', ['name'])
 FingerprintedImage = namedtuple('FingerprintedImage', ['name', 'sha1'])
 LocatedImage = namedtuple('LocatedImage', ['name', 'path'])
@@ -98,6 +105,9 @@ class _BismarkRelease(object):
         self._located_images = NamedTupleSet(
                 LocatedImage,
                 self._full_path('located-images'))
+        self._package_upgrades = NamedTupleSet(
+                NodePackage,
+                self._full_path('package-upgrades'))
 
     @property
     def builtin_packages(self):
@@ -106,6 +116,16 @@ class _BismarkRelease(object):
     @property
     def architectures(self):
         return self._architectures
+
+    def get_upgrade(self, node, package, architecture):
+        for node_package in self._package_upgrades:
+            if node_package.node != node:
+                continue
+            if node_package.name != package:
+                continue
+            if node_package.architecture != architecture:
+                continue
+            return node_package
 
     def update_base_build(self, build):
         for name in build.package_directories():
@@ -119,6 +139,20 @@ class _BismarkRelease(object):
         self._located_packages.add(located_package)
         fingerprinted_package = opkg.fingerprint_package(filename)
         self._fingerprinted_packages.add(fingerprinted_package)
+
+    def upgrade_package(self, node, name, version, architecture):
+        existing_upgrade = None
+        for node_package in self._package_upgrades:
+            if node_package.node != node:
+                continue
+            if node_package.name != name:
+                continue
+            if node_package.architecture != architecture:
+                continue
+            existing_upgrade = node_package
+        self._package_upgrades.discard(existing_upgrade)
+        node_package = NodePackage(node, name, version, architecture)
+        self._package_upgrades.add(node_package)
 
     def save(self):
         try:
@@ -138,6 +172,7 @@ class _BismarkRelease(object):
         self._package_directories.write_to_file()
         self._fingerprinted_images.write_to_file()
         self._located_images.write_to_file()
+        self._package_upgrades.write_to_file()
 
     def check_constraints(self):
         self._check_package_directories_exist()
@@ -147,6 +182,10 @@ class _BismarkRelease(object):
         self._check_package_locations_unique()
         self._check_package_fingerprints_valid()
         self._check_package_fingerprints_unique()
+        self._check_upgrades_exist()
+        self._check_upgrades_valid()
+        self._check_upgrades_unique()
+        self._check_upgrades_newer()
 
     def _full_path(self, basename):
         return os.path.join(self._path, basename)
@@ -218,3 +257,32 @@ class _BismarkRelease(object):
             if package in packages:
                 raise Exception('Multiple fingerprints for package %s' % package)
             packages.add(package)
+
+    def _check_upgrades_exist(self):
+        located = set()
+        for located_package in self._located_packages:
+            located.add(located_package.package)
+        for node_package in self._package_upgrades:
+            package = node_package.package
+            if package not in located:
+                raise Exception('Cannot locate upgraded package %s' % (package,))
+
+    def _check_upgrades_valid(self):
+        package_keys = set()
+        for package in self._builtin_packages:
+            package_keys.add((package.name, package.architecture))
+        for node_package in self._package_upgrades:
+            key = (node_package.name, node_package.architecture)
+            if key not in package_keys:
+                raise Exception('upgrade %s is not for a builtin package' % node_package)
+
+    def _check_upgrades_unique(self):
+        all_upgrades = set()
+        for node_package in self._package_upgrades:
+            key = (node_package.node, node_package.name, node_package.architecture)
+            if key in all_upgrades:
+                raise Exception('multiple upgrades to package %s for the same node %s' % (node_package.name, node_package.node))
+
+    def _check_upgrades_newer(self):
+        # TODO: Parse and compare versions
+        pass

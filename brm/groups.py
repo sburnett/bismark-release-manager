@@ -3,6 +3,8 @@ import glob
 import os
 
 class NodeGroups(object):
+    _reserved_groups = set(['default'])
+
     def __init__(self, root):
         self._root = root
         self._groups = dict()
@@ -26,6 +28,8 @@ class NodeGroups(object):
         return self._groups[name]
 
     def new_group(self, name):
+        if name in self._reserved_groups:
+            raise Exception('that group name is reserved')
         if name in self._groups:
             raise Exception('group already exists')
         self._groups[name] = set()
