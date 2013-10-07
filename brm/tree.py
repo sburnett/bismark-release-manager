@@ -199,6 +199,7 @@ class BismarkReleasesTree(object):
             bismark_release = release.BismarkRelease(release_path)
 
             bismark_release.deploy_packages(destination)
+            bismark_release.deploy_images(destination)
             bismark_release.deploy_builtin_packages(destination)
             bismark_release.deploy_upgrades(destination)
 

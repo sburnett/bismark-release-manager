@@ -168,6 +168,14 @@ class _BismarkRelease(object):
             common.makedirs(destination)
             shutil.copy2(located_package.path, destination)
 
+    def deploy_images(self, deployment_path):
+        for located_image in self._located_images:
+            destination_dir = os.path.join(deployment_path,
+                                           self._name,
+                                           located_image.architecture)
+            common.makedirs(destination_dir)
+            shutil.copy2(located_image.path, destination_dir)
+
     def deploy_builtin_packages(self, deployment_path):
         package_paths = self._deployment_package_paths(deployment_path)
         for package in self._builtin_packages:
