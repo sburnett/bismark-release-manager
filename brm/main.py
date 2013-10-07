@@ -31,7 +31,7 @@ def main():
     parser_list_builtin_packages.add_argument('architecture', type=str, nargs='?', action='store', help='target architecture (e.g., ar71xx)')
     parser_list_builtin_packages.set_defaults(handler=commands.list_builtin_packages)
 
-    parser_add_packages = subparsers.add_parser('add-packages', help='create a new release')
+    parser_add_packages = subparsers.add_parser('add-packages', help='add packages to a release')
     parser_add_packages.add_argument('release', type=str, action='store', help='add packages for this release (e.g., quirm)')
     parser_add_packages.add_argument('ipk', nargs='+', type=str, action='store', help='a compiled OpenWRT buildroot for the release')
     parser_add_packages.set_defaults(handler=commands.add_packages)
