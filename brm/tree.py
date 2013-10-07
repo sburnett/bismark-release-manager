@@ -198,11 +198,9 @@ class BismarkReleasesTree(object):
             release_path = self._release_path(release_name)
             bismark_release = release.BismarkRelease(release_path)
 
-            packages_path = os.path.join(destination, 'packages', release_name)
-            bismark_release.deploy_packages(packages_path)
-            deployment_path = os.path.join(destination, release_name)
-            bismark_release.deploy_builtin_packages(deployment_path)
-            bismark_release.deploy_upgrades(deployment_path)
+            bismark_release.deploy_packages(destination)
+            bismark_release.deploy_builtin_packages(destination)
+            bismark_release.deploy_upgrades(destination)
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
