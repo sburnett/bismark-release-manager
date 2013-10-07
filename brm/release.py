@@ -71,7 +71,7 @@ class NamedTupleSet(set):
             for record in sorted(self):
                 writer.writerow(record._asdict())
 
-def NewBismarkRelease(path, build):
+def new_bismark_release(path, build):
     logging.info('Creating new release in %r', path)
     release = _BismarkRelease(path)
     for name in build.architectures():
@@ -88,7 +88,7 @@ def NewBismarkRelease(path, build):
     release._fingerprint_packages()
     return release
 
-def BismarkRelease(path):
+def open_bismark_release(path):
     if not os.path.isdir(path):
         raise Exception('Release does not exist: %s' % path)
     return _BismarkRelease(path)

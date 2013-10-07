@@ -26,7 +26,7 @@ class BismarkReleasesTree(object):
             raise Exception('Release %r already exists' % name)
 
         openwrt_build = openwrt.BuildTree(build_root)
-        bismark_release = release.NewBismarkRelease(
+        bismark_release = release.new_bismark_release(
                 release_path,
                 openwrt_build)
         bismark_release.save()
@@ -43,24 +43,24 @@ class BismarkReleasesTree(object):
 
     def builtin_packages(self, release_name):
         logging.info('Getting builtin packages for release %r', release_name)
-        bismark_release = release.BismarkRelease(
+        bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         return bismark_release.builtin_packages
 
     def architectures(self, release_name):
         logging.info('Getting architectures for release %r', release_name)
-        bismark_release = release.BismarkRelease(
+        bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         return bismark_release.architectures
 
     def packages(self, release_name):
         logging.info('Getting packages for release %r', release_name)
-        bismark_release = release.BismarkRelease(
+        bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         return bismark_release.packages
 
     def add_packages(self, release_name, filenames):
-        bismark_release = release.BismarkRelease(
+        bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         for filename in filenames:
             logging.info('Add package %r to release %r',
@@ -119,7 +119,7 @@ class BismarkReleasesTree(object):
                      version,
                      architecture,
                      release_name)
-        bismark_release = release.BismarkRelease(
+        bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
         for group_name in group_names:
@@ -145,7 +145,7 @@ class BismarkReleasesTree(object):
         logging.info('Getting upgrades for architecture %r and release %r',
                      architecture,
                      release_name)
-        bismark_release = release.BismarkRelease(
+        bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
         if group_name in node_groups.groups:
@@ -197,12 +197,12 @@ class BismarkReleasesTree(object):
     def deploy(self, destination):
         for release_name in self.releases:
             release_path = self._release_path(release_name)
-            bismark_release = release.BismarkRelease(release_path)
+            bismark_release = release.open_bismark_release(release_path)
             bismark_release.check_constraints()
 
         for release_name in self.releases:
             release_path = self._release_path(release_name)
-            bismark_release = release.BismarkRelease(release_path)
+            bismark_release = release.open_bismark_release(release_path)
 
             bismark_release.deploy_packages(destination)
             bismark_release.deploy_images(destination)
