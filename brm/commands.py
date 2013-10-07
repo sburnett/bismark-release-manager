@@ -3,34 +3,36 @@ import os
 
 import tree
 
-def new_release(args):
-    releases_root = os.path.expanduser(args.root)
-    releases_tree = tree.BismarkReleasesTree(releases_root)
-    openwrt_build_root = os.path.expanduser(args.buildroot)
-    releases_tree.new_release(args.name, openwrt_build_root)
-
 def add_packages(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
     releases_tree.add_packages(args.release, args.ipk)
 
-def list_packages(args):
+def add_to_group(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    for package in sorted(releases_tree.packages(args.release)):
-        print ' '.join(package)
+    releases_tree.add_to_group(args.group, args.node)
+
+def commit(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.commit()
+
+def delete_group(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.delete_group(args.name)
+
+def deploy(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.deploy(args.destination)
 
 def list_architectures(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
     for architecture in sorted(releases_tree.architectures(args.release)):
         print ' '.join(architecture)
-
-def list_releases(args):
-    releases_root = os.path.expanduser(args.root)
-    releases_tree = tree.BismarkReleasesTree(releases_root)
-    for release_name in releases_tree.releases:
-        print release_name
 
 def list_builtin_packages(args):
     releases_root = os.path.expanduser(args.root)
@@ -41,26 +43,11 @@ def list_builtin_packages(args):
             continue
         print ' '.join(package)
 
-def new_group(args):
+def list_group(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.new_group(args.name)
-    releases_tree.add_to_group(args.name, args.node)
-
-def delete_group(args):
-    releases_root = os.path.expanduser(args.root)
-    releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.delete_group(args.name)
-
-def add_to_group(args):
-    releases_root = os.path.expanduser(args.root)
-    releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.add_to_group(args.group, args.node)
-
-def remove_from_group(args):
-    releases_root = os.path.expanduser(args.root)
-    releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.remove_from_group(args.group, args.node)
+    for node in releases_tree.nodes_in_group(args.name):
+        print node
 
 def list_groups(args):
     releases_root = os.path.expanduser(args.root)
@@ -68,16 +55,17 @@ def list_groups(args):
     for group in releases_tree.groups():
         print group
 
-def list_group(args):
+def list_packages(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    for node in releases_tree.nodes_in_group(args.name):
-        print node
+    for package in sorted(releases_tree.packages(args.release)):
+        print ' '.join(package)
 
-def upgrade_package(args):
+def list_releases(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.upgrade_package(args.release, args.package, args.version, args.architecture, args.group)
+    for release_name in releases_tree.releases:
+        print release_name
 
 def list_upgrades(args):
     releases_root = os.path.expanduser(args.root)
@@ -86,12 +74,24 @@ def list_upgrades(args):
     for upgrade in sorted(upgrades):
         print ' '.join(upgrade)
 
-def commit(args):
+def new_group(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.commit()
+    releases_tree.new_group(args.name)
+    releases_tree.add_to_group(args.name, args.node)
 
-def deploy(args):
+def new_release(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    releases_tree.deploy(args.destination)
+    openwrt_build_root = os.path.expanduser(args.buildroot)
+    releases_tree.new_release(args.name, openwrt_build_root)
+
+def remove_from_group(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.remove_from_group(args.group, args.node)
+
+def upgrade_package(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.upgrade_package(args.release, args.package, args.version, args.architecture, args.group)
