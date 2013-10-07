@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 import csv
 import errno
 import glob
@@ -171,6 +171,7 @@ class _BismarkRelease(object):
         for located_package in self._located_packages:
             destination = os.path.join(deployment_path,
                                        'packages',
+                                       self._name,
                                        located_package.architecture)
             common.makedirs(destination)
             shutil.copy2(located_package.path, destination)
@@ -190,11 +191,12 @@ class _BismarkRelease(object):
             architectures = self._normalize_architecture(package.architecture)
             for architecture in architectures:
                 link_dir = os.path.join(deployment_path,
+                                        self._name,
                                         architecture,
                                         'packages')
                 common.makedirs(link_dir)
                 link_name = os.path.join(link_dir, os.path.basename(source))
-                relative_source = os.path.relname(source, link_dir)
+                relative_source = os.path.relpath(source, link_dir)
                 os.symlink(relative_source, link_name)
 
     def deploy_upgrades(self, node_groups, deployment_path):
@@ -230,7 +232,7 @@ class _BismarkRelease(object):
     def deploy_packages_gz(self, deployment_path):
         patterns = [
                 '*/*/packages',
-                '*/*/updates-devices/*',
+                '*/*/updates-device/*',
                 ]
         for dirname in glob.iglob(patterns):
             raise NotImplementedError('generate Packages.gz')
@@ -292,7 +294,7 @@ class _BismarkRelease(object):
             return [architecture]
         architectures = []
         for architecture in self.architectures:
-            architectures.add(architecture.name)
+            architectures.append(architecture.name)
         return architectures
 
     def _resolve_groups_to_nodes(self, node_groups):
