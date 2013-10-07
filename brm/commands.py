@@ -23,8 +23,8 @@ def list_packages(args):
 def list_architectures(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
-    for package in sorted(releases_tree.architectures(args.release)):
-        print ' '.join(package)
+    for architecture in sorted(releases_tree.architectures(args.release)):
+        print ' '.join(architecture)
 
 def list_releases(args):
     releases_root = os.path.expanduser(args.root)
