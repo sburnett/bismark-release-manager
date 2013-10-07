@@ -252,13 +252,7 @@ class _BismarkRelease(object):
                     handle.write(index_contents)
 
     def save(self):
-        try:
-            os.makedirs(self._path)
-        except OSError as err:
-            if err.errno == errno.EEXIST:
-                pass
-            else:
-                raise
+        common.makedirs(self._path)
 
         self.check_constraints()
 

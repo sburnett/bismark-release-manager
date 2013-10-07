@@ -11,14 +11,7 @@ import release
 class BismarkReleasesTree(object):
     def __init__(self, root):
         self._root = root
-
-        try:
-            os.makedirs(root)
-        except OSError as err:
-            if err.errno == errno.EEXIST:
-                logging.info('Releases tree %r already exists', root)
-            else:
-                raise
+        common.makedirs(root)
 
     def new_release(self, name, build_root):
         release_path = self._release_path(name)
