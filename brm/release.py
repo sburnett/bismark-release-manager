@@ -208,7 +208,11 @@ class _BismarkRelease(object):
                 relative_source = os.path.relpath(source, link_dir)
                 os.symlink(relative_source, link_name)
 
-        pattern = os.path.join(deployment_path, '*', 'updates-device', '*')
+        pattern = os.path.join(deployment_path,
+                               self._name,
+                               '*',
+                               'updates-device',
+                               '*')
         for dirname in glob.iglob(pattern):
             if not os.path.isdir(dirname):
                 continue
