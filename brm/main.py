@@ -36,6 +36,10 @@ def main():
     parser_add_packages.add_argument('ipk', nargs='+', type=str, action='store', help='a compiled OpenWRT buildroot for the release')
     parser_add_packages.set_defaults(handler=commands.add_packages)
 
+    parser_list_packages = subparsers.add_parser('list-packages', help='list available packages')
+    parser_list_packages.add_argument('release', type=str, action='store', help='list packages for this release (e.g., quirm)')
+    parser_list_packages.set_defaults(handler=commands.list_packages)
+
     parser_list_groups = subparsers.add_parser('list-groups', help='list names of all groups')
     parser_list_groups.set_defaults(handler=commands.list_groups)
 

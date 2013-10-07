@@ -14,6 +14,12 @@ def add_packages(args):
     releases_tree = tree.BismarkReleasesTree(releases_root)
     releases_tree.add_packages(args.release, args.ipk)
 
+def list_packages(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    for package in sorted(releases_tree.packages(args.release)):
+        print ' '.join(package)
+
 def list_architectures(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)

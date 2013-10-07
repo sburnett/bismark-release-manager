@@ -127,6 +127,10 @@ class _BismarkRelease(object):
         return self._builtin_packages
 
     @property
+    def packages(self):
+        return self._located_packages
+
+    @property
     def architectures(self):
         return self._architectures
 

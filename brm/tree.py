@@ -53,6 +53,12 @@ class BismarkReleasesTree(object):
                 self._release_path(release_name))
         return bismark_release.architectures
 
+    def packages(self, release_name):
+        logging.info('Getting packages for release %r', release_name)
+        bismark_release = release.BismarkRelease(
+                self._release_path(release_name))
+        return bismark_release.packages
+
     def add_packages(self, release_name, filenames):
         bismark_release = release.BismarkRelease(
                 self._release_path(release_name))
