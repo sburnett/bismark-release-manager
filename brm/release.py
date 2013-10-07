@@ -11,6 +11,10 @@ import common
 import opkg
 
 Architecture = namedtuple('Architecture', ['name'])
+PackageDirectory = namedtuple('PackageDirectory', ['name'])
+FingerprintedImage = namedtuple('FingerprintedImage', ['name', 'architecture', 'sha1'])
+LocatedImage = namedtuple('LocatedImage', ['name', 'architecture', 'path'])
+
 _Package = namedtuple('Package', ['name', 'version', 'architecture'])
 class Package(_Package):
     def located_package(self, filename):
@@ -44,11 +48,7 @@ class NodePackage(_NodePackage):
     def package(self):
         return Package(self.name, self.version, self.architecture)
 
-PackageDirectory = namedtuple('PackageDirectory', ['name'])
-FingerprintedImage = namedtuple('FingerprintedImage', ['name', 'architecture', 'sha1'])
-LocatedImage = namedtuple('LocatedImage', ['name', 'architecture', 'path'])
-
-class NamedTupleSet(set):
+class _NamedTupleSet(set):
     def __init__(self, tuple_type, filename):
         self._tuple_type = tuple_type
         self._filename = filename
@@ -98,28 +98,28 @@ class _BismarkRelease(object):
         self._path = path
         self._name = os.path.basename(path)
 
-        self._architectures = NamedTupleSet(
+        self._architectures = _NamedTupleSet(
                 Architecture,
                 self._full_path('architectures'))
-        self._builtin_packages = NamedTupleSet(
+        self._builtin_packages = _NamedTupleSet(
                 Package,
                 self._full_path('builtin-packages'))
-        self._fingerprinted_packages = NamedTupleSet(
+        self._fingerprinted_packages = _NamedTupleSet(
                 FingerprintedPackage,
                 self._full_path('fingerprinted-packages'))
-        self._located_packages = NamedTupleSet(
+        self._located_packages = _NamedTupleSet(
                 LocatedPackage,
                 self._full_path('located-packages'))
-        self._package_directories = NamedTupleSet(
+        self._package_directories = _NamedTupleSet(
                 PackageDirectory,
                 self._full_path('package-directories'))
-        self._fingerprinted_images = NamedTupleSet(
+        self._fingerprinted_images = _NamedTupleSet(
                 FingerprintedImage,
                 self._full_path('fingerprinted-images'))
-        self._located_images = NamedTupleSet(
+        self._located_images = _NamedTupleSet(
                 LocatedImage,
                 self._full_path('located-images'))
-        self._package_upgrades = NamedTupleSet(
+        self._package_upgrades = _NamedTupleSet(
                 GroupPackage,
                 self._full_path('package-upgrades'))
 
