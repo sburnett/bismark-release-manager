@@ -235,6 +235,7 @@ class _BismarkRelease(object):
                 '*/*/updates-device/*',
                 ]
         for dirname in glob.iglob(patterns):
+            # TODO(sburnett): Generate Packages.gz
             raise NotImplementedError('generate Packages.gz')
 
     def save(self):
