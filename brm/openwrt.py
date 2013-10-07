@@ -38,7 +38,8 @@ class BuildTree(object):
                 logging.info('"%s" is not an image', filename)
                 continue
             logging.info('Adding image "%s"', filename)
-            images.add(filename)
+            architecture = os.path.basename(os.path.dirname(filename))
+            images.add((filename, architecture))
         return images
 
     def builtin_packages(self):

@@ -37,8 +37,8 @@ class NodePackage(_NodePackage):
         return Package(self.name, self.version, self.architecture)
 
 PackageDirectory = namedtuple('PackageDirectory', ['name'])
-FingerprintedImage = namedtuple('FingerprintedImage', ['name', 'sha1'])
-LocatedImage = namedtuple('LocatedImage', ['name', 'path'])
+FingerprintedImage = namedtuple('FingerprintedImage', ['name', 'architecture', 'sha1'])
+LocatedImage = namedtuple('LocatedImage', ['name', 'architecture', 'path'])
 
 class NamedTupleSet(set):
     def __init__(self, tuple_type, filename):
@@ -69,11 +69,11 @@ def NewBismarkRelease(path, build):
     for name in build.architectures():
         release._architectures.add(Architecture(name))
     release._builtin_packages.update(build.builtin_packages())
-    for path in build.images():
+    for path, architecture in build.images():
         name = os.path.basename(path)
-        release._located_images.add(LocatedImage(name, path))
+        release._located_images.add(LocatedImage(name, architecture, path))
         sha1 = common.get_fingerprint(path)
-        release._fingerprinted_images.add(FingerprintedImage(name, sha1))
+        release._fingerprinted_images.add(FingerprintedImage(name, architecture, sha1))
     for name in build.package_directories():
         release._package_directories.add(PackageDirectory(name))
     release._locate_packages()
