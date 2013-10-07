@@ -160,81 +160,52 @@ class _BismarkRelease(object):
         node_package = NodePackage(node, name, version, architecture)
         self._package_upgrades.add(node_package)
 
-    def deploy_packages(self, path):
-        for architecture in self.architectures:
-            common.makedirs(os.path.join(path, architecture.name))
-        common.makedirs(os.path.join(path, 'all'))
+    def deploy_packages(self, deployment_path):
         for located_package in self._located_packages:
-            destination = os.path.join(path, located_package.architecture)
+            destination = os.path.join(deployment_path,
+                                       'packages',
+                                       located_package.architecture)
+            common.makedirs(destination)
             shutil.copy2(located_package.path, destination)
 
-    def deploy_builtin_packages(self, path):
-        for architecture in self.architectures:
-            common.makedirs(os.path.join(path, architecture.name, 'packages'))
-        package_paths = dict()
-        for located_package in self._located_packages:
-            package_path = os.path.join(
-                    '..',
-                    '..',
-                    '..',
-                    'packages',
-                    self._name,
-                    located_package.architecture,
-                    os.path.basename(located_package.path))
-            package_paths[located_package.package] = package_path
+    def deploy_builtin_packages(self, deployment_path):
+        package_paths = self._deployment_package_paths(deployment_path)
         for package in self._builtin_packages:
             source = package_paths[package]
-            link_names = set()
-            if package.architecture == 'all':
-                for architecture in self.architectures:
-                    link_name = os.path.join(path,
-                                             architecture.name,
-                                             'packages',
-                                             os.path.basename(source))
-                    link_names.add(link_name)
-            else:
-                link_name = os.path.join(path,
-                                         package.architecture,
-                                         'packages',
-                                         os.path.basename(source))
-                link_names.add(link_name)
-            for link_name in link_names:
-                os.symlink(source, link_name)
+            architectures = self._normalize_architecture(package.architecture)
+            for architecture in architectures:
+                link_dir = os.path.join(deployment_path,
+                                        architecture,
+                                        'packages')
+                common.makedirs(link_dir)
+                link_name = os.path.join(link_dir, os.path.basename(source))
+                relative_source = os.path.relname(source, link_dir)
+                os.symlink(relative_source, link_name)
 
-    def deploy_upgrades(self, path):
-        for node_package in self._package_upgrades:
-
-        for architecture in self.architectures:
-            common.makedirs(os.path.join(path, architecture.name, 'packages'))
-        package_paths = dict()
-        for located_package in self._located_packages:
-            package_path = os.path.join(
-                    '..',
-                    '..',
-                    '..',
-                    'packages',
-                    self._name,
-                    located_package.architecture,
-                    os.path.basename(located_package.path))
-            package_paths[located_package.package] = package_path
-        for package in self._builtin_packages:
+    def deploy_upgrades(self, deployment_path):
+        upgraded_packages = self._normalize_package_upgrades()
+        package_paths = self._deployment_package_paths(deployment_path)
+        for node_package in upgraded_packages:
+            package = node_package.package
             source = package_paths[package]
-            link_names = set()
-            if package.architecture == 'all':
-                for architecture in self.architectures:
-                    link_name = os.path.join(path,
-                                             architecture.name,
-                                             'packages',
-                                             os.path.basename(source))
-                    link_names.add(link_name)
-            else:
-                link_name = os.path.join(path,
-                                         package.architecture,
-                                         'packages',
-                                         os.path.basename(source))
-                link_names.add(link_name)
-            for link_name in link_names:
-                os.symlink(source, link_name)
+            architectures = self._normalize_architecture(node_package.architecture)
+            for architecture in architectures:
+                link_dir = os.path.join(deployment_path,
+                                        self._name,
+                                        architecture,
+                                        'updates-device',
+                                        node_package.node)
+                common.makedirs(link_dir)
+                link_name = os.path.join(link_dir, os.path.basename(source))
+                relative_source = os.path.relpath(source, link_dir)
+                os.symlink(relative_source, link_name)
+
+        pattern = os.path.join(deployment_path, '*', 'updates-device', '*')
+        for dirname in glob.iglob(pattern):
+            if not os.path.isdir(dirname):
+                continue
+            with open(os.path.join(dirname, 'Upgradable'), 'w') as handle:
+                pass
 
     def save(self):
         try:
@@ -287,6 +258,51 @@ class _BismarkRelease(object):
             for filename in glob.iglob(pattern):
                 fingerprinted_package = opkg.fingerprint_package(filename)
                 self._fingerprinted_packages.add(fingerprinted_package)
+
+    def _normalize_architecture(self, architecture):
+        if architecture != 'all':
+            return [architecture]
+        architectures = []
+        for architecture in self.architectures:
+            architectures.add(architecture.name)
+        return architectures
+
+    def _normalize_package_upgrades(self):
+        nodes = set()
+        for node_package in self._package_upgrades:
+            nodes.add(node_package.node)
+        upgrades = defaultdict(dict)
+        for node_package in self._package_upgrades:
+            if node_package.node == 'default':
+                continue
+            key = (node_package.name, node_package.architecture)
+            upgrades[key][node_package.node] = node_package.version
+        for node_package in self._package_upgrades:
+            if node_package.node != 'default':
+                continue
+            key = (node_package.name, node_package.architecture)
+            for node in nodes:
+                if node in upgrades[key]:
+                    continue
+                upgrades[key][node] = node_package.version
+        upgraded_packages = set()
+        for (name, architecture), nodes in upgrades.items():
+            for node, version in nodes.items():
+                node_package = NodePackage(node, name, version, architecture)
+                upgraded_packages.add(node_package)
+        return upgraded_packages
+
+    def _deployment_package_paths(self, deployment_path):
+        package_paths = dict()
+        for located_package in self._located_packages:
+            package_path = os.path.join(
+                    deployment_path,
+                    'packages',
+                    self._name,
+                    located_package.architecture,
+                    os.path.basename(located_package.path))
+            package_paths[located_package.package] = package_path
+        return package_paths
 
     def _check_package_directories_exist(self):
         logging.info('Checking that package directories exist')
