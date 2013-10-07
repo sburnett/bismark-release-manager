@@ -9,6 +9,13 @@ def get_fingerprint(filename):
     hasher.update(contents)
     return hasher.hexdigest()
 
+def md5sum(filename):
+    with open(filename) as handle:
+        contents = handle.read()
+    hasher = hashlib.md5()
+    hasher.update(contents)
+    return hasher.hexdigest()
+
 def makedirs(path):
     try:
         os.makedirs(path)

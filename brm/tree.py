@@ -209,6 +209,7 @@ class BismarkReleasesTree(object):
             bismark_release.deploy_builtin_packages(destination)
             node_groups = groups.NodeGroups(self._groups_path())
             bismark_release.deploy_upgrades(node_groups, destination)
+            bismark_release.deploy_packages_gz(destination)
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)

@@ -2,6 +2,7 @@ from collections import defaultdict, namedtuple
 import csv
 import errno
 import glob
+import gzip
 import logging
 import os
 import shutil
@@ -238,9 +239,17 @@ class _BismarkRelease(object):
                 '*/*/packages',
                 '*/*/updates-device/*',
                 ]
-        for dirname in glob.iglob(patterns):
-            # TODO(sburnett): Generate Packages.gz
-            raise NotImplementedError('generate Packages.gz')
+        for pattern in patterns:
+            full_pattern = os.path.join(deployment_path, pattern)
+            for dirname in glob.iglob(full_pattern):
+                package_indices = []
+                for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
+                    package_index = opkg.generate_package_index(filename)
+                    package_indices.append(package_index)
+                index_contents = '\n'.join(package_indices)
+                index_filename = os.path.join(dirname, 'Packages.gz')
+                with gzip.open(index_filename, 'wb') as handle:
+                    handle.write(index_contents)
 
     def save(self):
         try:
