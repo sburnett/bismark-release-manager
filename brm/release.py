@@ -295,7 +295,7 @@ class _BismarkRelease(object):
                 self._fingerprinted_packages.add(fingerprinted_package)
 
     def _normalize_architecture(self, architecture):
-        log.info('normalizing architecture %r', architecture)
+        logging.info('normalizing architecture %r', architecture)
         if architecture != 'all':
             return [architecture]
         architectures = []
@@ -304,15 +304,15 @@ class _BismarkRelease(object):
         return architectures
 
     def _resolve_groups_to_nodes(self, node_groups):
-        log.info('resolving groups to nodes')
+        logging.info('resolving groups to nodes')
         resolved_upgrades = set()
         for group_package in self._package_upgrades:
             if group_package.group in node_groups.groups:
-                log.info('resolving group %r to a set of nodes',
+                logging.info('resolving group %r to a set of nodes',
                          group_package.group)
                 nodes = node_groups.nodes_in_group(group_package.group)
             else:
-                log.info('cannot resolve group %r, so treating it as a node',
+                logging.info('cannot resolve group %r, so treating it as a node',
                          group_package.group)
                 nodes = [group_package.group]
             for node in nodes:
@@ -334,7 +334,7 @@ class _BismarkRelease(object):
         return resolved_upgrades
 
     def _normalize_package_upgrades(self, resolved_upgrades):
-        log.info('normalizing package upgrades')
+        logging.info('normalizing package upgrades')
         nodes = set()
         for node_package in resolved_upgrades:
             nodes.add(node_package.node)
@@ -360,7 +360,7 @@ class _BismarkRelease(object):
         return upgraded_packages
 
     def _deployment_package_paths(self, deployment_path):
-        log.info('locating package in deployed path')
+        logging.info('locating package in deployed path')
         package_paths = dict()
         for located_package in self._located_packages:
             package_path = os.path.join(
