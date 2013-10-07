@@ -219,6 +219,14 @@ class _BismarkRelease(object):
             with open(os.path.join(dirname, 'Upgradable'), 'w') as handle:
                 pass
 
+    def deploy_packages_gz(self, deployment_path):
+        patterns = [
+                '*/*/packages',
+                '*/*/updates-devices/*',
+                ]
+        for dirname in glob.iglob(patterns):
+            raise NotImplementedError('generate Packages.gz')
+
     def save(self):
         try:
             os.makedirs(self._path)
