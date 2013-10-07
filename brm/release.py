@@ -274,7 +274,7 @@ class _BismarkRelease(object):
         return os.path.join(self._path, basename)
 
     def _locate_packages(self):
-        logging.info('Locating packages in all package directories')
+        logging.info('locating packages in all package directories')
         for package_directory in self._package_directories:
             pattern = os.path.join(package_directory.name, '*.ipk')
             for filename in glob.iglob(pattern):
@@ -282,7 +282,7 @@ class _BismarkRelease(object):
                 self._located_packages.add(located_package)
 
     def _fingerprint_packages(self):
-        logging.info('Fingerinting packages in all package directories')
+        logging.info('fingerinting packages in all package directories')
         for package_directory in self._package_directories:
             pattern = os.path.join(package_directory.name, '*.ipk')
             for filename in glob.iglob(pattern):
@@ -290,6 +290,7 @@ class _BismarkRelease(object):
                 self._fingerprinted_packages.add(fingerprinted_package)
 
     def _normalize_architecture(self, architecture):
+        log.info('normalizing architecture %r', architecture)
         if architecture != 'all':
             return [architecture]
         architectures = []
@@ -298,11 +299,16 @@ class _BismarkRelease(object):
         return architectures
 
     def _resolve_groups_to_nodes(self, node_groups):
+        log.info('resolving groups to nodes')
         resolved_upgrades = set()
         for group_package in self._package_upgrades:
             if group_package.group in node_groups.groups:
+                log.info('resolving group %r to a set of nodes',
+                         group_package.group)
                 nodes = node_groups.nodes_in_group(group_package.group)
             else:
+                log.info('cannot resolve group %r, so treating it as a node',
+                         group_package.group)
                 nodes = [group_package.group]
             for node in nodes:
                 resolved_upgrade = NodePackage(node,
@@ -323,6 +329,7 @@ class _BismarkRelease(object):
         return resolved_upgrades
 
     def _normalize_package_upgrades(self, resolved_upgrades):
+        log.info('normalizing package upgrades')
         nodes = set()
         for node_package in resolved_upgrades:
             nodes.add(node_package.node)
@@ -348,6 +355,7 @@ class _BismarkRelease(object):
         return upgraded_packages
 
     def _deployment_package_paths(self, deployment_path):
+        log.info('locating package in deployed path')
         package_paths = dict()
         for located_package in self._located_packages:
             package_path = os.path.join(
@@ -360,13 +368,13 @@ class _BismarkRelease(object):
         return package_paths
 
     def _check_package_directories_exist(self):
-        logging.info('Checking that package directories exist')
+        logging.info('checking that package directories exist')
         for package_directory in self._package_directories:
             if not os.path.isdir(package_directory.name):
                 raise Exception('Package directory %s does not exist' % name)
 
     def _check_builtin_packages_exist(self):
-        logging.info('Checking that builtin packages exist')
+        logging.info('checking that builtin packages exist')
         located = set()
         for located_package in self._located_packages:
             located.add(located_package.package)
@@ -375,7 +383,7 @@ class _BismarkRelease(object):
                 raise Exception('Cannot locate builtin package %s' % key)
 
     def _check_builtin_packages_unique(self):
-        logging.info('Checking that builtin packages have only one version')
+        logging.info('checking that builtin packages have only one version')
         package_keys = set()
         for package in self._builtin_packages:
             key = (package.name, package.architecture)
@@ -384,13 +392,13 @@ class _BismarkRelease(object):
             package_keys.add(key)
 
     def _check_package_locations_exist(self):
-        logging.info('Checking that located packages exist')
+        logging.info('checking that located packages exist')
         for package in self._located_packages:
             if not os.path.isfile(package.path):
                 raise Exception('Cannot find package %s at %s' % (package.name, package.path))
 
     def _check_package_locations_unique(self):
-        logging.info('Checking that package locations are unique')
+        logging.info('checking that package locations are unique')
         packages = set()
         for located_package in self._located_packages:
             package = located_package.package
@@ -399,7 +407,7 @@ class _BismarkRelease(object):
             packages.add(package)
 
     def _check_package_fingerprints_valid(self):
-        logging.info('Checking that package fingerprints are valid')
+        logging.info('checking that package fingerprints are valid')
         fingerprints = {}
         for fingerprinted_package in self._fingerprinted_packages:
             fingerprints[fingerprinted_package.package] = fingerprinted_package.sha1
@@ -412,7 +420,7 @@ class _BismarkRelease(object):
                 raise Exception('Fingerprint mismatch for %s: %s vs %s' % (key, old_sha1, new_sha1))
 
     def _check_package_fingerprints_unique(self):
-        logging.info('Checking that package fingerprints are unique')
+        logging.info('checking that package fingerprints are unique')
         packages = set()
         for fingerprinted_package in self._fingerprinted_packages:
             package = fingerprinted_package.package
@@ -421,7 +429,7 @@ class _BismarkRelease(object):
             packages.add(package)
 
     def _check_upgrades_exist(self):
-        logging.info('Checking that upgraded packages exists')
+        logging.info('checking that upgraded packages exists')
         located = set()
         for located_package in self._located_packages:
             located.add(located_package.package)
@@ -431,7 +439,7 @@ class _BismarkRelease(object):
                 raise Exception('Cannot locate upgraded package %s' % (package,))
 
     def _check_upgrades_valid(self):
-        logging.info('Checking that upgrades only upgrade builting packages')
+        logging.info('checking that upgrades only upgrade builting packages')
         package_keys = set()
         for package in self._builtin_packages:
             package_keys.add((package.name, package.architecture))
@@ -441,7 +449,7 @@ class _BismarkRelease(object):
                 raise Exception('upgrade %s is not for a builtin package' % group_package)
 
     def _check_upgrades_unique(self):
-        logging.info('Checking that upgraded packages are unique per node')
+        logging.info('checking that upgraded packages are unique per node')
         all_upgrades = set()
         for group_package in self._package_upgrades:
             key = (group_package.group, group_package.name, group_package.architecture)
