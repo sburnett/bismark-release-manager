@@ -130,9 +130,9 @@ class _BismarkRelease(object):
     def architectures(self):
         return self._architectures
 
-    def get_upgrade(self, node, package, architecture):
+    def get_upgrade(self, group, package, architecture):
         for group_package in self._package_upgrades:
-            if group_package.node != node:
+            if group_package.group != group:
                 continue
             if group_package.name != package:
                 continue
@@ -300,7 +300,10 @@ class _BismarkRelease(object):
     def _resolve_groups_to_nodes(self, node_groups):
         resolved_upgrades = set()
         for group_package in self._package_upgrades:
-            nodes = node_groups.nodes_in_group(group_package.group)
+            if group_package.group in node_groups.groups:
+                nodes = node_groups.nodes_in_group(group_package.group)
+            else:
+                nodes = [group_package.group]
             for node in nodes:
                 resolved_upgrade = NodePackage(node,
                                                group_package.name,
@@ -321,27 +324,27 @@ class _BismarkRelease(object):
 
     def _normalize_package_upgrades(self, resolved_upgrades):
         nodes = set()
-        for group_package in resolved_upgrades:
-            nodes.add(group_package.node)
+        for node_package in resolved_upgrades:
+            nodes.add(node_package.node)
         upgrades = defaultdict(dict)
-        for group_package in resolved_upgrades:
-            if group_package.node == 'default':
+        for node_package in resolved_upgrades:
+            if node_package.node == 'default':
                 continue
-            key = (group_package.name, group_package.architecture)
-            upgrades[key][group_package.node] = group_package.version
-        for group_package in resolved_upgrades:
-            if group_package.node != 'default':
+            key = (node_package.name, node_package.architecture)
+            upgrades[key][node_package.node] = node_package.version
+        for node_package in resolved_upgrades:
+            if node_package.node != 'default':
                 continue
-            key = (group_package.name, group_package.architecture)
+            key = (node_package.name, node_package.architecture)
             for node in nodes:
                 if node in upgrades[key]:
                     continue
-                upgrades[key][node] = group_package.version
+                upgrades[key][node] = node_package.version
         upgraded_packages = set()
         for (name, architecture), nodes in upgrades.items():
             for node, version in nodes.items():
-                group_package = GroupPackage(node, name, version, architecture)
-                upgraded_packages.add(group_package)
+                node_package = NodePackage(node, name, version, architecture)
+                upgraded_packages.add(node_package)
         return upgraded_packages
 
     def _deployment_package_paths(self, deployment_path):
@@ -392,7 +395,7 @@ class _BismarkRelease(object):
         for located_package in self._located_packages:
             package = located_package.package
             if package in packages:
-                raise Exception('Multiple locations for package %s' % package)
+                raise Exception('Multiple locations for package %s' % (package,))
             packages.add(package)
 
     def _check_package_fingerprints_valid(self):
