@@ -79,3 +79,13 @@ def list_upgrades(args):
     upgrades = releases_tree.upgrades(args.release, args.architecture, args.group, args.package)
     for upgrade in sorted(upgrades):
         print ' '.join(upgrade)
+
+def commit(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.commit()
+
+def deploy(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.deploy(args.destination)

@@ -2,6 +2,7 @@ import errno
 import glob
 import logging
 import os
+import subprocess
 
 import groups
 import openwrt
@@ -168,6 +169,39 @@ class BismarkReleasesTree(object):
                     continue
                 upgrades.add(node_package)
         return upgrades
+
+    def commit(self):
+        os.chdir(self._root)
+        if not os.path.isdir('.git'):
+            subprocess.check_call(['git', 'init'])
+        patterns = [
+                'groups/*',
+                'releases/*/architectures',
+                'releases/*/builtin-packages',
+                'releases/*/fingerprinted-images',
+                'releases/*/fingerprinted-packages',
+                'releases/*/package-upgrades',
+                ]
+        for pattern in patterns:
+            for filename in glob.iglob(pattern):
+                subprocess.check_call(['git', 'add', filename])
+        if subprocess.call(['git', 'diff', '--exit-code']) != 0:
+            subprocess.check_call(['git', 'commit', '-a'])
+
+    def deploy(self, destination):
+        for release_name in self.releases:
+            release_path = self._release_path(release_name)
+            bismark_release = release.BismarkRelease(release_path)
+            bismark_release.check_constraints()
+
+        for release_name in self.releases:
+            release_path = self._release_path(release_name)
+            bismark_release = release.BismarkRelease(release_path)
+
+            packages_path = os.path.join(destination, 'packages', release_name)
+            bismark_release.deploy_packages(packages_path)
+            deployment_path = os.path.join(destination, release_name)
+            bismark_release.deploy_builtin_packages(deployment_path)
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)

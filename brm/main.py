@@ -77,6 +77,13 @@ def main():
     parser_list_upgrades.add_argument('package', nargs='*', type=str, action='store', help='show upgrades of these packages')
     parser_list_upgrades.set_defaults(handler=commands.list_upgrades)
 
+    parser_commit = subparsers.add_parser('commit', help='commit current release configuration to git')
+    parser_commit.set_defaults(handler=commands.commit)
+
+    parser_deploy = subparsers.add_parser('deploy', help='deploy all releases')
+    parser_deploy.add_argument('destination', type=str, action='store', help='deploy to this directory')
+    parser_deploy.set_defaults(handler=commands.deploy)
+
     args = parser.parse_args()
     args.root = os.path.expanduser(args.root)
 

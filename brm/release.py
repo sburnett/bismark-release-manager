@@ -4,6 +4,7 @@ import errno
 import glob
 import logging
 import os
+import shutil
 
 import common
 import opkg
@@ -87,6 +88,7 @@ def BismarkRelease(path):
 class _BismarkRelease(object):
     def __init__(self, path):
         self._path = path
+        self._name = os.path.basename(path)
 
         self._architectures = NamedTupleSet(
                 Architecture,
@@ -157,6 +159,82 @@ class _BismarkRelease(object):
         self._package_upgrades.discard(existing_upgrade)
         node_package = NodePackage(node, name, version, architecture)
         self._package_upgrades.add(node_package)
+
+    def deploy_packages(self, path):
+        for architecture in self.architectures:
+            common.makedirs(os.path.join(path, architecture.name))
+        common.makedirs(os.path.join(path, 'all'))
+        for located_package in self._located_packages:
+            destination = os.path.join(path, located_package.architecture)
+            shutil.copy2(located_package.path, destination)
+
+    def deploy_builtin_packages(self, path):
+        for architecture in self.architectures:
+            common.makedirs(os.path.join(path, architecture.name, 'packages'))
+        package_paths = dict()
+        for located_package in self._located_packages:
+            package_path = os.path.join(
+                    '..',
+                    '..',
+                    '..',
+                    'packages',
+                    self._name,
+                    located_package.architecture,
+                    os.path.basename(located_package.path))
+            package_paths[located_package.package] = package_path
+        for package in self._builtin_packages:
+            source = package_paths[package]
+            link_names = set()
+            if package.architecture == 'all':
+                for architecture in self.architectures:
+                    link_name = os.path.join(path,
+                                             architecture.name,
+                                             'packages',
+                                             os.path.basename(source))
+                    link_names.add(link_name)
+            else:
+                link_name = os.path.join(path,
+                                         package.architecture,
+                                         'packages',
+                                         os.path.basename(source))
+                link_names.add(link_name)
+            for link_name in link_names:
+                os.symlink(source, link_name)
+
+    def deploy_upgrades(self, path):
+        for node_package in self._package_upgrades:
+
+        for architecture in self.architectures:
+            common.makedirs(os.path.join(path, architecture.name, 'packages'))
+        package_paths = dict()
+        for located_package in self._located_packages:
+            package_path = os.path.join(
+                    '..',
+                    '..',
+                    '..',
+                    'packages',
+                    self._name,
+                    located_package.architecture,
+                    os.path.basename(located_package.path))
+            package_paths[located_package.package] = package_path
+        for package in self._builtin_packages:
+            source = package_paths[package]
+            link_names = set()
+            if package.architecture == 'all':
+                for architecture in self.architectures:
+                    link_name = os.path.join(path,
+                                             architecture.name,
+                                             'packages',
+                                             os.path.basename(source))
+                    link_names.add(link_name)
+            else:
+                link_name = os.path.join(path,
+                                         package.architecture,
+                                         'packages',
+                                         os.path.basename(source))
+                link_names.add(link_name)
+            for link_name in link_names:
+                os.symlink(source, link_name)
 
     def save(self):
         try:
