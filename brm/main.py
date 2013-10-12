@@ -117,7 +117,6 @@ def main():
 
     args = parser.parse_args()
 
-
     logging.basicConfig(format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
                         level=getattr(logging, args.loglevel))
