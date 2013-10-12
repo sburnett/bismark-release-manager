@@ -107,6 +107,16 @@ def main():
     parser_remove_from_group.add_argument('node', nargs='+', type=str, action='store', help='nodes to remove')
     parser_remove_from_group.set_defaults(handler=commands.remove_from_group)
 
+    parser_require_experiment = subparsers.add_parser('require-experiment', help='require a group of routers to install an experiment')
+    parser_require_experiment.add_argument('experiment', type=str, action='store', help='name of the experiment')
+    parser_require_experiment.add_argument('group', nargs='+', type=str, action='store', help='require the experiment on these routers')
+    parser_require_experiment.set_defaults(handler=commands.require_experiment)
+
+    parser_unrequire_experiment = subparsers.add_parser('unrequire-experiment', help='stop requiring a group of routers to install an experiment')
+    parser_unrequire_experiment.add_argument('experiment', type=str, action='store', help='name of the experiment')
+    parser_unrequire_experiment.add_argument('group', nargs='+', type=str, action='store', help='stop requiring the experiment on these routers')
+    parser_unrequire_experiment.set_defaults(handler=commands.unrequire_experiment)
+
     parser_upgrade_package = subparsers.add_parser('upgrade-package', help='upgrade a builtin package on a set of routers')
     parser_upgrade_package.add_argument('release', type=str, action='store', help='upgrade package for this release (e.g., quirm)')
     parser_upgrade_package.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')

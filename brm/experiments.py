@@ -42,21 +42,19 @@ class _Experiment(object):
     def packages(self):
         return self._packages
 
-    def add_package(self, release, architecture, package, version, group):
-        experiment_package = ExperimentPackage(group,
-                                               release,
-                                               package,
-                                               version,
-                                               architecture)
+    def add_package(self, *args):
+        experiment_package = ExperimentPackage(*args)
         self._packages.add(experiment_package)
 
-    def remove_package(self, release, architecture, package, version, group):
-        experiment_package = ExperimentPackage(group,
-                                               release,
-                                               package,
-                                               version,
-                                               architecture)
+    def remove_package(self, *args):
+        experiment_package = ExperimentPackage(*args)
         self._packages.remove(experiment_package)
+
+    def require(self, group):
+        self._required.add(GroupName(group))
+
+    def unrequire(self, group):
+        self._required.remove(GroupName(group))
 
     def write_to_files(self):
         common.makedirs(self._root)
@@ -100,50 +98,34 @@ class BismarkExperiments(object):
             self._experiments[name] = experiment
 
     def experiment_packages(self, experiment):
-        if experiment not in self._experiments:
-            raise Exception('experiment does not exist')
-        return self._experiments[experiment].packages
+        return self._experiment(experiment).packages
 
-    def new_experiment(self, name, display_name, description):
+    def new_experiment(self, name, *rest):
         if name in self._experiments:
             raise Exception('experiment already exists')
-        self._experiments[name] = new_experiment(self._experiment_path(name),
-                                                 display_name,
-                                                 description)
+        experiment_path = self._experiment_path(name)
+        self._experiments[name] = new_experiment(experiment_path, *rest)
 
-    def add_to_experiment(self,
-                          experiment,
-                          release,
-                          architecture,
-                          package,
-                          version,
-                          group):
-        if experiment not in self._experiments:
-            raise Exception('experiment does not exist')
-        self._experiments[experiment].add_package(release,
-                                                  architecture,
-                                                  package,
-                                                  version,
-                                                  group)
+    def add_to_experiment(self, experiment, *rest):
+        self._experiment(experiment).add_package(*rest)
 
-    def remove_from_experiment(self,
-                               experiment,
-                               release,
-                               architecture,
-                               package,
-                               version,
-                               group):
-        if experiment not in self._experiments:
-            raise Exception('experiment does not exist')
-        self._experiments[experiment].remove_package(release,
-                                                     architecture,
-                                                     package,
-                                                     version,
-                                                     group)
+    def remove_from_experiment(self, experiment, *rest):
+        self._experiment(experiment).remove_package(*rest)
+
+    def require_experiment(self, experiment, group):
+        self._experiment(experiment).require(group)
+
+    def unrequire_experiment(self, experiment, group):
+        self._experiment(experiment).unrequire(group)
 
     def write_to_files(self):
         for name, experiment in self._experiments.items():
             experiment.write_to_files()
+
+    def _experiment(self, name):
+        if name not in self._experiments:
+            raise Exception('experiment does not exist')
+        return self._experiments[name]
 
     def _experiment_path(self, name):
         return os.path.join(self._root, name)

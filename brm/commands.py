@@ -6,11 +6,11 @@ def add_packages(releases_tree, args):
 
 def add_to_experiment(releases_tree, args):
     releases_tree.add_to_experiment(args.experiment,
+                                    args.group,
                                     args.release,
-                                    args.architecture,
                                     args.package,
                                     args.version,
-                                    args.group)
+                                    args.architecture)
 
 def add_to_group(releases_tree, args):
     releases_tree.add_to_group(args.group, args.node)
@@ -78,14 +78,20 @@ def new_release(releases_tree, args):
 
 def remove_from_experiment(releases_tree, args):
     releases_tree.remove_from_experiment(args.experiment,
+                                         args.group,
                                          args.release,
-                                         args.architecture,
                                          args.package,
                                          args.version,
-                                         args.group)
+                                         args.architecture)
 
 def remove_from_group(releases_tree, args):
     releases_tree.remove_from_group(args.group, args.node)
+
+def require_experiment(releases_tree, args):
+    releases_tree.require_experiment(args.experiment, args.group)
+
+def unrequire_experiment(releases_tree, args):
+    releases_tree.unrequire_experiment(args.experiment, args.group)
 
 def upgrade_package(releases_tree, args):
     releases_tree.upgrade_package(args.release,

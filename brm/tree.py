@@ -184,42 +184,36 @@ class BismarkReleasesTree(object):
         bismark_experiments.new_experiment(name, display_name, description)
         bismark_experiments.write_to_files()
 
-    def add_to_experiment(self,
-                          experiment,
-                          release,
-                          architecture,
-                          package,
-                          version,
-                          groups):
+    def add_to_experiment(self, experiment, groups, *rest):
         logging.info('Adding groups to experiment %s', experiment)
         bismark_experiments = experiments.BismarkExperiments(
                 self._experiments_path())
         for group in groups:
-            bismark_experiments.add_to_experiment(experiment,
-                                                  release,
-                                                  architecture,
-                                                  package,
-                                                  version,
-                                                  group)
+            bismark_experiments.add_to_experiment(experiment, group, *rest)
         bismark_experiments.write_to_files()
 
-    def remove_from_experiment(self,
-                               experiment,
-                               release,
-                               architecture,
-                               package,
-                               version,
-                               groups):
+    def remove_from_experiment(self, experiment, groups, *rest):
         logging.info('Removing groups from experiment %s', experiment)
         bismark_experiments = experiments.BismarkExperiments(
                 self._experiments_path())
         for group in groups:
-            bismark_experiments.remove_from_experiment(experiment,
-                                                       release,
-                                                       architecture,
-                                                       package,
-                                                       version,
-                                                       group)
+            bismark_experiments.remove_from_experiment(experiment, group, *rest)
+        bismark_experiments.write_to_files()
+
+    def require_experiment(self, experiment, groups):
+        logging.info('Requiring groups for experiment %s', experiment)
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        for group in groups:
+            bismark_experiments.require_experiment(experiment, group)
+        bismark_experiments.write_to_files()
+
+    def unrequire_experiment(self, experiment, groups):
+        logging.info('Unrequiring groups for experiment %s', experiment)
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        for group in groups:
+            bismark_experiments.unrequire_experiment(experiment, group)
         bismark_experiments.write_to_files()
 
     def commit(self):
