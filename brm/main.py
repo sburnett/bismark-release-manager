@@ -6,6 +6,7 @@ import os
 import sys
 
 import commands
+import tree
 
 def main():
     parser = argparse.ArgumentParser(description='Publish releases of BISmark images, packages, and experiments')
@@ -115,13 +116,14 @@ def main():
     parser_upgrade_package.set_defaults(handler=commands.upgrade_package)
 
     args = parser.parse_args()
-    args.root = os.path.expanduser(args.root)
+
 
     logging.basicConfig(format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
                         level=getattr(logging, args.loglevel))
 
-    args.handler(args)
+    releases_tree = tree.BismarkReleasesTree(os.path.expanduser(args.root))
+    args.handler(releases_tree, args)
 
 if __name__ == '__main__':
     main()
