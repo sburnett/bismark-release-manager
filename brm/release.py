@@ -48,29 +48,6 @@ class NodePackage(_NodePackage):
     def package(self):
         return Package(self.name, self.version, self.architecture)
 
-class _NamedTupleSet(set):
-    def __init__(self, tuple_type, filename):
-        self._tuple_type = tuple_type
-        self._filename = filename
-        if os.path.isfile(self._filename):
-            self.read_from_file()
-
-    def read_from_file(self):
-        logging.info('Reading namedtuple from file %r', self._filename)
-        with open(self._filename) as handle:
-            for row in csv.DictReader(handle, delimiter=' '):
-                self.add(self._tuple_type(**row))
-
-    def write_to_file(self):
-        logging.info('Writing namedtuple to file %r', self._filename)
-        with open(self._filename, 'w') as handle:
-            writer = csv.DictWriter(handle,
-                                    self._tuple_type._fields,
-                                    delimiter=' ')
-            writer.writeheader()
-            for record in sorted(self):
-                writer.writerow(record._asdict())
-
 def new_bismark_release(path, build):
     logging.info('Creating new release in %r', path)
     release = _BismarkRelease(path)
@@ -98,28 +75,28 @@ class _BismarkRelease(object):
         self._path = path
         self._name = os.path.basename(path)
 
-        self._architectures = _NamedTupleSet(
+        self._architectures = common.NamedTupleSet(
                 Architecture,
                 self._full_path('architectures'))
-        self._builtin_packages = _NamedTupleSet(
+        self._builtin_packages = common.NamedTupleSet(
                 Package,
                 self._full_path('builtin-packages'))
-        self._fingerprinted_packages = _NamedTupleSet(
+        self._fingerprinted_packages = common.NamedTupleSet(
                 FingerprintedPackage,
                 self._full_path('fingerprinted-packages'))
-        self._located_packages = _NamedTupleSet(
+        self._located_packages = common.NamedTupleSet(
                 LocatedPackage,
                 self._full_path('located-packages'))
-        self._package_directories = _NamedTupleSet(
+        self._package_directories = common.NamedTupleSet(
                 PackageDirectory,
                 self._full_path('package-directories'))
-        self._fingerprinted_images = _NamedTupleSet(
+        self._fingerprinted_images = common.NamedTupleSet(
                 FingerprintedImage,
                 self._full_path('fingerprinted-images'))
-        self._located_images = _NamedTupleSet(
+        self._located_images = common.NamedTupleSet(
                 LocatedImage,
                 self._full_path('located-images'))
-        self._package_upgrades = _NamedTupleSet(
+        self._package_upgrades = common.NamedTupleSet(
                 GroupPackage,
                 self._full_path('package-upgrades'))
 

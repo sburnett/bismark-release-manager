@@ -4,6 +4,8 @@ import logging
 import os
 import subprocess
 
+import common
+import experiments
 import groups
 import openwrt
 import release
@@ -51,6 +53,12 @@ class BismarkReleasesTree(object):
         bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         return bismark_release.packages
+
+    def experiment_packages(self, experiment_name):
+        logging.info('Getting packages for experiment %r', experiment_name)
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        return bismark_experiments.experiment_packages(experiment_name)
 
     def add_packages(self, release_name, filenames):
         bismark_release = release.open_bismark_release(
@@ -169,6 +177,51 @@ class BismarkReleasesTree(object):
                 upgrades.add(node_package)
         return upgrades
 
+    def new_experiment(self, name, display_name, description):
+        logging.info('Creating new experiment %s', name)
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        bismark_experiments.new_experiment(name, display_name, description)
+        bismark_experiments.write_to_files()
+
+    def add_to_experiment(self,
+                          experiment,
+                          release,
+                          architecture,
+                          package,
+                          version,
+                          groups):
+        logging.info('Adding groups to experiment %s', experiment)
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        for group in groups:
+            bismark_experiments.add_to_experiment(experiment,
+                                                  release,
+                                                  architecture,
+                                                  package,
+                                                  version,
+                                                  group)
+        bismark_experiments.write_to_files()
+
+    def remove_from_experiment(self,
+                               experiment,
+                               release,
+                               architecture,
+                               package,
+                               version,
+                               groups):
+        logging.info('Removing groups from experiment %s', experiment)
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        for group in groups:
+            bismark_experiments.remove_from_experiment(experiment,
+                                                       release,
+                                                       architecture,
+                                                       package,
+                                                       version,
+                                                       group)
+        bismark_experiments.write_to_files()
+
     def commit(self):
         os.chdir(self._root)
         if not os.path.isdir('.git'):
@@ -209,3 +262,6 @@ class BismarkReleasesTree(object):
 
     def _groups_path(self):
         return os.path.join(self._root, 'groups')
+
+    def _experiments_path(self):
+        return os.path.join(self._root, 'experiments')

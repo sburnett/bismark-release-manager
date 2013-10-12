@@ -19,6 +19,15 @@ def main():
     parser_add_packages.add_argument('ipk', nargs='+', type=str, action='store', help='a compiled OpenWRT buildroot for the release')
     parser_add_packages.set_defaults(handler=commands.add_packages)
 
+    parser_add_to_experiment = subparsers.add_parser('add-to-experiment', help='add a package to an experiment')
+    parser_add_to_experiment.add_argument('experiment', type=str, action='store', help='experiment identifier')
+    parser_add_to_experiment.add_argument('release', type=str, action='store', help='add package for this release (e.g., quirm)')
+    parser_add_to_experiment.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_add_to_experiment.add_argument('package', type=str, action='store', help='name of the package to install')
+    parser_add_to_experiment.add_argument('version', type=str, action='store', help='version of the package')
+    parser_add_to_experiment.add_argument('group', nargs='+', type=str, action='store', help='enable experiment on this group of routers')
+    parser_add_to_experiment.set_defaults(handler=commands.add_to_experiment)
+
     parser_add_to_group = subparsers.add_parser('add-to-group', help='add nodes to a group')
     parser_add_to_group.add_argument('group', type=str, action='store', help='name of the group')
     parser_add_to_group.add_argument('node', nargs='+', type=str, action='store', help='nodes to add')
@@ -44,6 +53,10 @@ def main():
     parser_list_builtin_packages.add_argument('architecture', type=str, nargs='?', action='store', help='target architecture (e.g., ar71xx)')
     parser_list_builtin_packages.set_defaults(handler=commands.list_builtin_packages)
 
+    parser_list_experiment_packages = subparsers.add_parser('list-experiment-packages', help='list packages for an experiment')
+    parser_list_experiment_packages.add_argument('experiment', type=str, action='store', help='list packages for this experiment')
+    parser_list_experiment_packages.set_defaults(handler=commands.list_experiment_packages)
+
     parser_list_group = subparsers.add_parser('list-group', help='list nodes in a groups')
     parser_list_group.add_argument('name', type=str, action='store', help='name of the new group')
     parser_list_group.set_defaults(handler=commands.list_group)
@@ -65,6 +78,10 @@ def main():
     parser_list_upgrades.add_argument('package', nargs='*', type=str, action='store', help='show upgrades of these packages')
     parser_list_upgrades.set_defaults(handler=commands.list_upgrades)
 
+    parser_new_experiment = subparsers.add_parser('new-experiment', help='create a new experiment')
+    parser_new_experiment.add_argument('name', type=str, action='store', help='name of the new experiment')
+    parser_new_experiment.set_defaults(handler=commands.new_experiment)
+
     parser_new_group = subparsers.add_parser('new-group', help='create a new group of nodes')
     parser_new_group.add_argument('name', type=str, action='store', help='name of the new group')
     parser_new_group.add_argument('node', nargs='*', type=str, action='store', help='nodes to add')
@@ -74,6 +91,15 @@ def main():
     parser_new_release.add_argument('name', type=str, action='store', help='name of this release (e.g., quirm)')
     parser_new_release.add_argument('buildroot', type=str, action='store', help='a compiled OpenWRT buildroot for the release')
     parser_new_release.set_defaults(handler=commands.new_release)
+
+    parser_remove_from_experiment = subparsers.add_parser('remove-from-experiment', help='remove a package from an experiment')
+    parser_remove_from_experiment.add_argument('experiment', type=str, action='store', help='experiment identifier')
+    parser_remove_from_experiment.add_argument('release', type=str, action='store', help='remove package from this release (e.g., quirm)')
+    parser_remove_from_experiment.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_remove_from_experiment.add_argument('package', type=str, action='store', help='name of the package')
+    parser_remove_from_experiment.add_argument('version', type=str, action='store', help='version of the package')
+    parser_remove_from_experiment.add_argument('group', nargs='+', type=str, action='store', help='remove packages from this group of routers')
+    parser_remove_from_experiment.set_defaults(handler=commands.remove_from_experiment)
 
     parser_remove_from_group = subparsers.add_parser('remove-from-group', help='remove nodes from a group')
     parser_remove_from_group.add_argument('group', type=str, action='store', help='name of the group')

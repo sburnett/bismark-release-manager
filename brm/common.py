@@ -1,5 +1,8 @@
+from collections import namedtuple
+import csv
 import errno
 import hashlib
+import logging
 import os
 
 def get_fingerprint(filename):
@@ -24,3 +27,26 @@ def makedirs(path):
             pass
         else:
             raise
+
+class NamedTupleSet(set):
+    def __init__(self, tuple_type, filename):
+        self._tuple_type = tuple_type
+        self._filename = filename
+        if os.path.isfile(self._filename):
+            self.read_from_file()
+
+    def read_from_file(self):
+        logging.info('Reading namedtuple from file %r', self._filename)
+        with open(self._filename) as handle:
+            for row in csv.DictReader(handle, delimiter=' '):
+                self.add(self._tuple_type(**row))
+
+    def write_to_file(self):
+        logging.info('Writing namedtuple to file %r', self._filename)
+        with open(self._filename, 'w') as handle:
+            writer = csv.DictWriter(handle,
+                                    self._tuple_type._fields,
+                                    delimiter=' ')
+            writer.writeheader()
+            for record in sorted(self):
+                writer.writerow(record._asdict())

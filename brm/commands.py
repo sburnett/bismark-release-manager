@@ -8,6 +8,16 @@ def add_packages(args):
     releases_tree = tree.BismarkReleasesTree(releases_root)
     releases_tree.add_packages(args.release, args.ipk)
 
+def add_to_experiment(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.add_to_experiment(args.experiment,
+                                    args.release,
+                                    args.architecture,
+                                    args.package,
+                                    args.version,
+                                    args.group)
+
 def add_to_group(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
@@ -43,6 +53,12 @@ def list_builtin_packages(args):
             continue
         print ' '.join(package)
 
+def list_experiment_packages(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    for package in sorted(releases_tree.experiment_packages(args.experiment)):
+        print ' '.join(package)
+
 def list_group(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
@@ -74,6 +90,13 @@ def list_upgrades(args):
     for upgrade in sorted(upgrades):
         print ' '.join(upgrade)
 
+def new_experiment(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    display_name = raw_input('Enter a display name for this experiment: ')
+    description = raw_input('Enter a description for this experiment: ')
+    releases_tree.new_experiment(args.name, display_name, description)
+
 def new_group(args):
     releases_root = os.path.expanduser(args.root)
     releases_tree = tree.BismarkReleasesTree(releases_root)
@@ -85,6 +108,16 @@ def new_release(args):
     releases_tree = tree.BismarkReleasesTree(releases_root)
     openwrt_build_root = os.path.expanduser(args.buildroot)
     releases_tree.new_release(args.name, openwrt_build_root)
+
+def remove_from_experiment(args):
+    releases_root = os.path.expanduser(args.root)
+    releases_tree = tree.BismarkReleasesTree(releases_root)
+    releases_tree.remove_from_experiment(args.experiment,
+                                         args.release,
+                                         args.architecture,
+                                         args.package,
+                                         args.version,
+                                         args.group)
 
 def remove_from_group(args):
     releases_root = os.path.expanduser(args.root)
