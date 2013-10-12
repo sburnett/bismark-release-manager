@@ -58,6 +58,9 @@ def main():
     parser_list_experiment_packages.add_argument('experiment', type=str, action='store', help='list packages for this experiment')
     parser_list_experiment_packages.set_defaults(handler=commands.list_experiment_packages)
 
+    parser_list_experiments = subparsers.add_parser('list-experiments', help='list all experiments')
+    parser_list_experiments.set_defaults(handler=commands.list_experiments)
+
     parser_list_group = subparsers.add_parser('list-group', help='list nodes in a groups')
     parser_list_group.add_argument('name', type=str, action='store', help='name of the new group')
     parser_list_group.set_defaults(handler=commands.list_group)

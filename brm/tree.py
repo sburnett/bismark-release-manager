@@ -54,6 +54,13 @@ class BismarkReleasesTree(object):
                 self._release_path(release_name))
         return bismark_release.packages
 
+    @property
+    def experiments(self):
+        logging.info('Getting all experiments %r')
+        bismark_experiments = experiments.BismarkExperiments(
+                self._experiments_path())
+        return bismark_experiments.experiments
+
     def experiment_packages(self, experiment_name):
         logging.info('Getting packages for experiment %r', experiment_name)
         bismark_experiments = experiments.BismarkExperiments(

@@ -97,6 +97,10 @@ class BismarkExperiments(object):
             experiment = open_experiment(dirname)
             self._experiments[name] = experiment
 
+    @property
+    def experiments(self):
+        return self._experiments
+
     def experiment_packages(self, experiment):
         return self._experiment(experiment).packages
 

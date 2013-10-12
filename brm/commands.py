@@ -39,6 +39,10 @@ def list_experiment_packages(releases_tree, args):
     for package in sorted(releases_tree.experiment_packages(args.experiment)):
         print ' '.join(package)
 
+def list_experiments(releases_tree, args):
+    for name, experiment in sorted(releases_tree.experiments.items()):
+        print name
+
 def list_group(releases_tree, args):
     for node in releases_tree.nodes_in_group(args.name):
         print node
