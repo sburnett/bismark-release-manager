@@ -1,3 +1,4 @@
+from collections import defaultdict
 import errno
 import glob
 import logging
@@ -14,6 +15,8 @@ class BismarkReleasesTree(object):
     def __init__(self, root):
         self._root = root
         common.makedirs(root)
+
+        self._experiments = experiments.Experiments(self._experiments_path())
 
     def new_release(self, name, build_root):
         release_path = self._release_path(name)
@@ -57,15 +60,11 @@ class BismarkReleasesTree(object):
     @property
     def experiments(self):
         logging.info('Getting all experiments %r')
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
-        return bismark_experiments.experiments
+        return self._experiments.experiments
 
     def experiment_packages(self, experiment_name):
         logging.info('Getting packages for experiment %r', experiment_name)
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
-        return bismark_experiments.experiment_packages(experiment_name)
+        return self._experiments.experiment(experiment_name).packages
 
     def add_packages(self, release_name, filenames):
         bismark_release = release.open_bismark_release(
@@ -186,42 +185,28 @@ class BismarkReleasesTree(object):
 
     def new_experiment(self, name, display_name, description):
         logging.info('Creating new experiment %s', name)
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
-        bismark_experiments.new_experiment(name, display_name, description)
-        bismark_experiments.write_to_files()
+        self._experiments.new_experiment(name, display_name, description)
+        self._experiments.write_to_files()
 
     def add_to_experiment(self, experiment, groups, *rest):
         logging.info('Adding groups to experiment %s', experiment)
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
         for group in groups:
-            bismark_experiments.add_to_experiment(experiment, group, *rest)
-        bismark_experiments.write_to_files()
+            self._experiments.experiment(experiment).add_package(group, *rest)
+        self._experiments.write_to_files()
 
     def remove_from_experiment(self, experiment, groups, *rest):
         logging.info('Removing groups from experiment %s', experiment)
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
         for group in groups:
-            bismark_experiments.remove_from_experiment(experiment, group, *rest)
-        bismark_experiments.write_to_files()
+            self._experiments.experiment(experiment).remove_packages(group, *rest)
+        self._experiments.write_to_files()
 
-    def require_experiment(self, experiment, groups):
-        logging.info('Requiring groups for experiment %s', experiment)
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
+    def set_experiment_required(self, experiment, required, groups):
+        logging.info('Set required to %r for experiment %r',
+                     required,
+                     experiment)
         for group in groups:
-            bismark_experiments.require_experiment(experiment, group)
-        bismark_experiments.write_to_files()
-
-    def unrequire_experiment(self, experiment, groups):
-        logging.info('Unrequiring groups for experiment %s', experiment)
-        bismark_experiments = experiments.BismarkExperiments(
-                self._experiments_path())
-        for group in groups:
-            bismark_experiments.unrequire_experiment(experiment, group)
-        bismark_experiments.write_to_files()
+            self._experiments.experiment(experiment).set_required(group, required)
+        self._experiments.write_to_files()
 
     def commit(self):
         os.chdir(self._root)
@@ -247,7 +232,6 @@ class BismarkReleasesTree(object):
             bismark_release = release.open_bismark_release(release_path)
             bismark_release.check_constraints()
 
-        bismark_experiments = self._experiments()
         for release_name in self.releases:
             release_path = self._release_path(release_name)
             bismark_release = release.open_bismark_release(release_path)
@@ -258,10 +242,20 @@ class BismarkReleasesTree(object):
             node_groups = groups.NodeGroups(self._groups_path())
             bismark_release.deploy_upgrades(node_groups, destination)
 
-            bismark_experiments.deploy(bismark_release, node_groups, destination)
+            self._deploy_experiments(bismark_release, node_groups, destination)
 
             bismark_release.deploy_packages_gz(destination)
             bismark_release.deploy_upgradable_sentinels(destination)
+
+    def _deploy_experiments(self, bismark_release, node_groups, destination):
+        release_name = bismark_release.name
+
+        bismark_release.deploy_experiment_packages(self._experiments,
+                                                   node_groups,
+                                                   destination)
+        bismark_release.deploy_experiment_configurations(self._experiments,
+                                                         node_groups,
+                                                         destination)
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
@@ -273,4 +267,4 @@ class BismarkReleasesTree(object):
         return os.path.join(self._root, 'experiments')
 
     def _experiments(self):
-        return experiments.BismarkExperiments(self._experiments_path())
+        return experiments.Experiments(self._experiments_path())

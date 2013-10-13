@@ -7,6 +7,7 @@ import gzip
 import logging
 import os
 import shutil
+import StringIO
 
 import common
 import opkg
@@ -48,6 +49,12 @@ class NodePackage(_NodePackage):
     @property
     def package(self):
         return Package(self.name, self.version, self.architecture)
+
+def bool_to_string(b):
+    if b:
+        return '1'
+    else:
+        return '0'
 
 def new_bismark_release(path, build):
     logging.info('Creating new release in %r', path)
@@ -196,12 +203,17 @@ class _BismarkRelease(object):
                                deployment_path)
 
     def deploy_experiment_packages(self,
-                                   group_packages,
+                                   experiments,
                                    node_groups,
                                    deployment_path):
+
         all_group_packages = set()
-        for packages in group_packages.values():
-            all_group_packages.update(packages)
+        for name in experiments.experiments:
+            experiment = experiments.experiment(name)
+            for group_package in experiment.packages:
+                if group_package.release != self._name:
+                    continue
+                all_group_packages.add(group_package)
         node_packages = self._resolve_groups_to_nodes(node_groups,
                                                       all_group_packages)
         normalized_packages = self._normalize_default_packages(node_packages)
@@ -210,10 +222,27 @@ class _BismarkRelease(object):
                                deployment_path)
 
     def deploy_experiment_configurations(self,
-                                         group_configuration_headers,
-                                         group_experiment_packages,
+                                         experiments,
                                          node_groups,
                                          deployment_path):
+        group_configuration_headers = defaultdict(dict)
+        for name in experiments.experiments:
+            experiment = experiments.experiment(name)
+            for group in experiment.groups:
+                s = StringIO.StringIO()
+                print >>s, "config 'experiment' '%s'" % experiment.name
+                print >>s, "    option 'display_name' '%s'" % experiment.display_name
+                print >>s, "    option 'description' '%s'" % experiment.description
+                for conflict in experiment.conflicts:
+                    print >>s, "    list 'conflicts' '%s'" % conflict
+                required = bool_to_string(experiment.is_required(group))
+                print >>s, "    option 'required' '%s'" % required
+                revoked = bool_to_string(experiment.is_revoked(group))
+                print >>s, "    option 'revoked' '%s'" % revoked
+                installed = bool_to_string(experiment.is_installed_by_default(group))
+                print >>s, "    option 'installed' '%s'" % installed
+                group_configuration_headers[group][name] = s.getvalue()
+
         node_configuration_headers = defaultdict(dict)
         for group, headers in group_configuration_headers.items():
             nodes = self._resolve_group_to_nodes(node_groups, group)
@@ -224,6 +253,14 @@ class _BismarkRelease(object):
                     node_configuration_headers[node][experiment] = header
         normalized_headers = self._normalize_default_experiments(
                 node_configuration_headers)
+
+        group_experiment_packages = defaultdict(lambda: defaultdict(set))
+        for name in experiments.experiments:
+            experiment = experiments.experiment(name)
+            for group_package in experiment.packages:
+                if group_package.release != self._name:
+                    continue
+                group_experiment_packages[group_package.group][name].add(group_package)
 
         bodies = defaultdict(dict)
         for group, experiment_packages in group_experiment_packages.items():
@@ -408,9 +445,9 @@ class _BismarkRelease(object):
         logging.info('normalizing experiments')
         if 'default' not in node_dicts:
             return node_dicts
-        default_dict = node_dict['default']
-        for key, default_value in default_dict:
-            for node, value_dict in node_dicts:
+        default_dict = node_dicts['default']
+        for key, default_value in default_dict.items():
+            for node, value_dict in node_dicts.items():
                 if node == 'default':
                     continue
                 if key in value_dict:

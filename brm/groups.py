@@ -11,20 +11,7 @@ class NodeGroups(object):
         self._groups = dict()
         self._groups_to_delete = set()
 
-        pattern = os.path.join(self._root, '*')
-        logging.info('Reading groups from %r', pattern)
-        for filename in glob.iglob(pattern):
-            if not os.path.isfile(filename):
-                logging.info('%r is not a group', filename)
-                continue
-            name = os.path.basename(filename)
-            logging.info('Reading group %r from %r', name, filename)
-            with open(filename) as handle:
-                self._groups[name] = set()
-                for line in handle:
-                    node = line.strip()
-                    logging.info('Reading node %r for group %r', node, name)
-                    self._groups[name].add(node)
+        self._read_from_files()
 
     @property
     def groups(self):
@@ -80,3 +67,19 @@ class NodeGroups(object):
             except OSError as e:
                 if e.errno != errno.ENOENT:
                     raise
+
+    def _read_from_files(self):
+        pattern = os.path.join(self._root, '*')
+        logging.info('Reading groups from %r', pattern)
+        for filename in glob.iglob(pattern):
+            if not os.path.isfile(filename):
+                logging.info('%r is not a group', filename)
+                continue
+            name = os.path.basename(filename)
+            logging.info('Reading group %r from %r', name, filename)
+            with open(filename) as handle:
+                self._groups[name] = set()
+                for line in handle:
+                    node = line.strip()
+                    logging.info('Reading node %r for group %r', node, name)
+                    self._groups[name].add(node)

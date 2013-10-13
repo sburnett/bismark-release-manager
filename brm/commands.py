@@ -40,7 +40,7 @@ def list_experiment_packages(releases_tree, args):
         print ' '.join(package)
 
 def list_experiments(releases_tree, args):
-    for name, experiment in sorted(releases_tree.experiments.items()):
+    for name in sorted(releases_tree.experiments):
         print name
 
 def list_group(releases_tree, args):
