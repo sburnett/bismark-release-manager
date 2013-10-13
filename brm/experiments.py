@@ -1,6 +1,7 @@
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 import glob
 import os
+import StringIO
 
 import common
 
@@ -12,6 +13,12 @@ ExperimentPackage = namedtuple('ExperimentPackage',
                                 'version',
                                 'architecture'])
 GroupName = namedtuple('GroupList', ['group'])
+
+def bool_to_string(b):
+    if b:
+        return '1'
+    else:
+        return '0'
 
 def new_experiment(root, display_name, description):
     experiment = _Experiment(root)
@@ -27,6 +34,7 @@ def open_experiment(root):
 class _Experiment(object):
     def __init__(self, root):
         self._root = root
+        self._name = os.path.basename(root)
         self._conflicts = common.NamedTupleSet(ExperimentConflict,
                                                self._get_filename('conflicts'))
         self._packages = common.NamedTupleSet(ExperimentPackage,
@@ -55,6 +63,36 @@ class _Experiment(object):
 
     def unrequire(self, group):
         self._required.remove(GroupName(group))
+
+    def group_configuration_headers(self):
+        groups = set()
+        for package in self._packages:
+            groups.add(package.group)
+
+        configuration_headers = {}
+        for group in groups:
+            s = StringIO.StringIO()
+            print >>s, "config 'experiment' '%s'" % self._name
+            print >>s, "    option 'display_name' '%s'" % self._display_name
+            print >>s, "    option 'description' '%s'" % self._description
+            for conflict in self._conflicts:
+                print >>s, "    list 'conflicts' '%s'" % conflict
+            required = bool_to_string(group in self._required)
+            print >>s, "    option 'required' '%s'" % required
+            revoked = bool_to_string(group in self._revoked)
+            print >>s, "    option 'revoked' '%s'" % revoked
+            installed = bool_to_string(group in self._installed)
+            print >>s, "    option 'installed' '%s'" % installed
+            configuration_headers[group] = s.getvalue()
+        return configuration_headers
+
+    def group_packages(self, release_name):
+        group_packages = defaultdict(set)
+        for package in self._packages:
+            if package.release != release_name:
+                continue
+            group_packages[package.group].add(package)
+        return group_packages
 
     def write_to_files(self):
         common.makedirs(self._root)
@@ -121,6 +159,34 @@ class BismarkExperiments(object):
 
     def unrequire_experiment(self, experiment, group):
         self._experiment(experiment).unrequire(group)
+
+    def deploy(self, bismark_release, node_groups, destination):
+        release_name = bismark_release.name
+
+        all_group_packages = defaultdict(set)
+        for name, experiment in self._experiments.items():
+            group_packages = experiment.group_packages(release_name)
+            for group, packages in group_packages.items():
+                all_group_packages[group].update(packages)
+        bismark_release.deploy_experiment_packages(all_group_packages,
+                                                   node_groups,
+                                                   destination)
+
+        group_configuration_headers = defaultdict(dict)
+        group_experiment_packages = defaultdict(dict)
+        for name, experiment in self._experiments.items():
+            group_headers = experiment.group_configuration_headers()
+            for group, headers in group_headers.items():
+                group_configuration_headers[group][name] = headers
+            group_packages = experiment.group_packages(release_name)
+            for group, packages in group_packages.items():
+                group_experiment_packages[group][name] = packages
+
+        bismark_release.deploy_experiment_configurations(
+                group_configuration_headers,
+                group_experiment_packages,
+                node_groups,
+                destination)
 
     def write_to_files(self):
         for name, experiment in self._experiments.items():

@@ -247,6 +247,7 @@ class BismarkReleasesTree(object):
             bismark_release = release.open_bismark_release(release_path)
             bismark_release.check_constraints()
 
+        bismark_experiments = self._experiments()
         for release_name in self.releases:
             release_path = self._release_path(release_name)
             bismark_release = release.open_bismark_release(release_path)
@@ -256,7 +257,11 @@ class BismarkReleasesTree(object):
             bismark_release.deploy_builtin_packages(destination)
             node_groups = groups.NodeGroups(self._groups_path())
             bismark_release.deploy_upgrades(node_groups, destination)
+
+            bismark_experiments.deploy(bismark_release, node_groups, destination)
+
             bismark_release.deploy_packages_gz(destination)
+            bismark_release.deploy_upgradable_sentinels(destination)
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
@@ -266,3 +271,6 @@ class BismarkReleasesTree(object):
 
     def _experiments_path(self):
         return os.path.join(self._root, 'experiments')
+
+    def _experiments(self):
+        return experiments.BismarkExperiments(self._experiments_path())

@@ -1,4 +1,5 @@
 from collections import defaultdict, namedtuple
+import copy
 import csv
 import errno
 import glob
@@ -101,6 +102,10 @@ class _BismarkRelease(object):
                 self._full_path('package-upgrades'))
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def builtin_packages(self):
         return self._builtin_packages
 
@@ -182,37 +187,84 @@ class _BismarkRelease(object):
                 os.symlink(relative_source, link_name)
 
     def deploy_upgrades(self, node_groups, deployment_path):
-        resolved_upgrades = self._resolve_groups_to_nodes(node_groups)
-        upgraded_packages = self._normalize_package_upgrades(resolved_upgrades)
-        package_paths = self._deployment_package_paths(deployment_path)
-        for group_package in upgraded_packages:
-            package = group_package.package
-            source = package_paths[package]
-            architectures = self._normalize_architecture(group_package.architecture)
-            for architecture in architectures:
-                link_dir = os.path.join(deployment_path,
-                                        self._name,
-                                        architecture,
-                                        'updates-device',
-                                        group_package.node)
-                common.makedirs(link_dir)
-                link_name = os.path.join(link_dir, os.path.basename(source))
-                relative_source = os.path.relpath(source, link_dir)
-                os.symlink(relative_source, link_name)
-
-        pattern = os.path.join(deployment_path,
-                               self._name,
-                               '*',
+        resolved_upgrades = self._resolve_groups_to_nodes(
+                node_groups,
+                self._package_upgrades)
+        upgraded_packages = self._normalize_default_packages(resolved_upgrades)
+        self._symlink_packages(upgraded_packages,
                                'updates-device',
-                               '*')
-        for dirname in glob.iglob(pattern):
-            if not os.path.isdir(dirname):
-                continue
-            with open(os.path.join(dirname, 'Upgradable'), 'w') as handle:
-                pass
+                               deployment_path)
+
+    def deploy_experiment_packages(self,
+                                   group_packages,
+                                   node_groups,
+                                   deployment_path):
+        all_group_packages = set()
+        for packages in group_packages.values():
+            all_group_packages.update(packages)
+        node_packages = self._resolve_groups_to_nodes(node_groups,
+                                                      all_group_packages)
+        normalized_packages = self._normalize_default_packages(node_packages)
+        self._symlink_packages(normalized_packages,
+                               'experiments-device',
+                               deployment_path)
+
+    def deploy_experiment_configurations(self,
+                                         group_configuration_headers,
+                                         group_experiment_packages,
+                                         node_groups,
+                                         deployment_path):
+        node_configuration_headers = defaultdict(dict)
+        for group, headers in group_configuration_headers.items():
+            nodes = self._resolve_group_to_nodes(node_groups, group)
+            for node in nodes:
+                for experiment, header in headers.items():
+                    if experiment in node_configuration_headers[node]:
+                        raise Exception('conflicting experiment defintions')
+                    node_configuration_headers[node][experiment] = header
+        normalized_headers = self._normalize_default_experiments(
+                node_configuration_headers)
+
+        bodies = defaultdict(dict)
+        for group, experiment_packages in group_experiment_packages.items():
+            nodes = self._resolve_group_to_nodes(node_groups, group)
+            for node in nodes:
+                for experiment, packages in experiment_packages.items():
+                    for package in packages:
+                        architectures = self._normalize_architecture(
+                                package.architecture)
+                        for architecture in architectures:
+                            key = architecture, experiment, package.name
+                            if key in bodies[node]:
+                                raise Exception('conflicting packages for experiment')
+                            bodies[node][key] = package
+        normalized_bodies = self._normalize_default_experiments(bodies)
+
+        configurations = defaultdict(dict)
+        for node, packages in normalized_bodies.items():
+            for architecture, experiment, name in packages:
+                if experiment not in configurations[architecture, node]:
+                    configurations[architecture, node][experiment] = (
+                            normalized_headers[node][experiment])
+                configurations[architecture, node][experiment] += (
+                        "    list 'package' '%s'\n" % name)
+
+        for (architecture, node), experiments in configurations.items():
+            filename = os.path.join(deployment_path,
+                                    self.name,
+                                    architecture,
+                                    'experiments-device',
+                                    node,
+                                    'Experiments')
+            common.makedirs(os.path.dirname(filename))
+            with open(filename, 'w') as handle:
+                for name, configuration in experiments.items():
+                    handle.write(configuration)
+                    print >>handle, ''
 
     def deploy_packages_gz(self, deployment_path):
         patterns = [
+                '*/*/experiments-device/*',
                 '*/*/packages',
                 '*/*/updates-device/*',
                 ]
@@ -227,6 +279,19 @@ class _BismarkRelease(object):
                 index_filename = os.path.join(dirname, 'Packages.gz')
                 with gzip.open(index_filename, 'wb') as handle:
                     handle.write(index_contents)
+
+    def deploy_upgradable_sentinels(self, deployment_path):
+        patterns = [
+                '*/*/updates-device/*',
+                '*/*/experiments-device/*',
+                ]
+        for pattern in patterns:
+            full_pattern = os.path.join(deployment_path, pattern)
+            for dirname in glob.iglob(full_pattern):
+                if not os.path.isdir(dirname):
+                    continue
+                with open(os.path.join(dirname, 'Upgradable'), 'w') as handle:
+                    pass
 
     def save(self):
         common.makedirs(self._path)
@@ -283,61 +348,75 @@ class _BismarkRelease(object):
             architectures.append(architecture.name)
         return architectures
 
-    def _resolve_groups_to_nodes(self, node_groups):
+    def _resolve_group_to_nodes(self, node_groups, group_or_node):
+        if group_or_node in node_groups.groups:
+            logging.info('resolving %r to a set of nodes', group_or_node)
+            return node_groups.nodes_in_group(group_or_node)
+        else:
+            logging.info('resolving %r to a single node', group_or_node)
+            return [group_or_node]
+
+    def _resolve_groups_to_nodes(self, node_groups, group_packages):
         logging.info('resolving groups to nodes')
-        resolved_upgrades = set()
-        for group_package in self._package_upgrades:
-            if group_package.group in node_groups.groups:
-                logging.info('resolving group %r to a set of nodes',
-                         group_package.group)
-                nodes = node_groups.nodes_in_group(group_package.group)
-            else:
-                logging.info('cannot resolve group %r, so treating it as a node',
-                         group_package.group)
-                nodes = [group_package.group]
-            for node in nodes:
-                resolved_upgrade = NodePackage(node,
-                                               group_package.name,
-                                               group_package.version,
-                                               group_package.architecture)
-                resolved_upgrades.add(resolved_upgrade)
+        node_packages = set()
+        for group_package in group_packages:
+            for node in self._resolve_group_to_nodes(node_groups, group_package.group):
+                node_package = NodePackage(node,
+                                           group_package.name,
+                                           group_package.version,
+                                           group_package.architecture)
+                node_packages.add(node_package)
 
         # TODO(sburnett): Change this to pick the latest version instead of
         # throwing an error.
-        upgrades_per_node = set()
-        for upgrade in resolved_upgrades:
-            key = (upgrade.node, upgrade.name, upgrade.architecture)
-            if key in upgrades_per_node:
-                raise Exception('Conflicting upgrades for a node')
-            upgrades_per_node.add(key)
+        packages_per_node = set()
+        for package in node_packages:
+            key = (package.node, package.name, package.architecture)
+            if key in packages_per_node:
+                raise Exception('Conflicting package versions for a node')
+            packages_per_node.add(key)
 
-        return resolved_upgrades
+        return node_packages
 
-    def _normalize_package_upgrades(self, resolved_upgrades):
-        logging.info('normalizing package upgrades')
+    def _normalize_default_packages(self, node_packages):
+        logging.info('normalizing packages')
         nodes = set()
-        for node_package in resolved_upgrades:
+        for node_package in node_packages:
             nodes.add(node_package.node)
-        upgrades = defaultdict(dict)
-        for node_package in resolved_upgrades:
+        packages = defaultdict(dict)
+        for node_package in node_packages:
             if node_package.node == 'default':
                 continue
             key = (node_package.name, node_package.architecture)
-            upgrades[key][node_package.node] = node_package.version
-        for node_package in resolved_upgrades:
+            packages[key][node_package.node] = node_package.version
+        for node_package in node_packages:
             if node_package.node != 'default':
                 continue
             key = (node_package.name, node_package.architecture)
             for node in nodes:
-                if node in upgrades[key]:
+                if node in packages[key]:
                     continue
-                upgrades[key][node] = node_package.version
-        upgraded_packages = set()
-        for (name, architecture), nodes in upgrades.items():
+                packages[key][node] = node_package.version
+        normalized_packages = set()
+        for (name, architecture), nodes in packages.items():
             for node, version in nodes.items():
                 node_package = NodePackage(node, name, version, architecture)
-                upgraded_packages.add(node_package)
-        return upgraded_packages
+                normalized_packages.add(node_package)
+        return normalized_packages
+
+    def _normalize_default_experiments(self, node_dicts):
+        logging.info('normalizing experiments')
+        if 'default' not in node_dicts:
+            return node_dicts
+        default_dict = node_dict['default']
+        for key, default_value in default_dict:
+            for node, value_dict in node_dicts:
+                if node == 'default':
+                    continue
+                if key in value_dict:
+                    continue
+                value_dict[key] = default_value
+        return node_dicts
 
     def _deployment_package_paths(self, deployment_path):
         logging.info('locating package in deployed path')
@@ -351,6 +430,22 @@ class _BismarkRelease(object):
                     os.path.basename(located_package.path))
             package_paths[located_package.package] = package_path
         return package_paths
+
+    def _symlink_packages(self, packages, subdirectory, deployment_path):
+        package_paths = self._deployment_package_paths(deployment_path)
+        for package in packages:
+            source = package_paths[package.package]
+            architectures = self._normalize_architecture(package.architecture)
+            for architecture in architectures:
+                link_dir = os.path.join(deployment_path,
+                                        self._name,
+                                        architecture,
+                                        subdirectory,
+                                        package.node)
+                common.makedirs(link_dir)
+                link_name = os.path.join(link_dir, os.path.basename(source))
+                relative_source = os.path.relpath(source, link_dir)
+                os.symlink(relative_source, link_name)
 
     def _check_package_directories_exist(self):
         logging.info('checking that package directories exist')
