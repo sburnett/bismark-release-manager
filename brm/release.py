@@ -295,7 +295,7 @@ class _BismarkRelease(object):
                                     'Experiments')
             common.makedirs(os.path.dirname(filename))
             with open(filename, 'w') as handle:
-                for name, configuration in experiments.items():
+                for name, configuration in sorted(experiments.items()):
                     handle.write(configuration)
                     print >>handle, ''
 
