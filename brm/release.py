@@ -205,8 +205,7 @@ class _BismarkRelease(object):
                                    deployment_path):
 
         all_group_packages = set()
-        for name in experiments.experiments:
-            experiment = experiments.experiment(name)
+        for name, experiment in experiments.iteritems():
             for group_package in experiment.packages:
                 if group_package.release != self._name:
                     continue
@@ -223,8 +222,7 @@ class _BismarkRelease(object):
                                          node_groups,
                                          deployment_path):
         group_configuration_headers = defaultdict(dict)
-        for name in experiments.experiments:
-            experiment = experiments.experiment(name)
+        for name, experiment in experiments:
             for group in experiment.groups:
                 s = StringIO.StringIO()
                 print >>s, "config 'experiment' '%s'" % experiment.name
@@ -252,8 +250,7 @@ class _BismarkRelease(object):
                 node_configuration_headers)
 
         group_experiment_packages = defaultdict(lambda: defaultdict(set))
-        for name in experiments.experiments:
-            experiment = experiments.experiment(name)
+        for name, experiment in experiments:
             for group_package in experiment.packages:
                 if group_package.release != self._name:
                     continue

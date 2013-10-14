@@ -173,20 +173,22 @@ class Experiments(object):
 
         self._read_from_files()
 
-    @property
-    def experiments(self):
-        return self._experiments.keys()
+    def __iter__(self):
+        return self._experiments.__iter__()
+
+    def __getitem__(self, name):
+        if name not in self._experiments:
+            raise Exception('experiment does not exist')
+        return self._experiments[name]
+
+    def iteritems(self):
+        return self._experiments.iteritems()
 
     def new_experiment(self, name, *rest):
         if name in self._experiments:
             raise Exception('experiment already exists')
         experiment_path = self._experiment_path(name)
         self._experiments[name] = new_experiment(experiment_path, *rest)
-
-    def experiment(self, name):
-        if name not in self._experiments:
-            raise Exception('experiment does not exist')
-        return self._experiments[name]
 
     def write_to_files(self):
         for name, experiment in self._experiments.items():

@@ -58,11 +58,11 @@ class BismarkReleasesTree(object):
     @property
     def experiments(self):
         logging.info('Getting all experiments %r')
-        return self._experiments.experiments
+        return self._experiments
 
     def experiment_packages(self, experiment_name):
         logging.info('Getting packages for experiment %r', experiment_name)
-        return self._experiments.experiment(experiment_name).packages
+        return self._experiments[experiment_name].packages
 
     def add_packages(self, release_name, filenames):
         bismark_release = release.open_bismark_release(
@@ -189,13 +189,13 @@ class BismarkReleasesTree(object):
     def add_to_experiment(self, experiment, groups, *rest):
         logging.info('Adding groups to experiment %s', experiment)
         for group in groups:
-            self._experiments.experiment(experiment).add_package(group, *rest)
+            self._experiments[experiment].add_package(group, *rest)
         self._experiments.write_to_files()
 
     def remove_from_experiment(self, experiment, groups, *rest):
         logging.info('Removing groups from experiment %s', experiment)
         for group in groups:
-            self._experiments.experiment(experiment).remove_package(group, *rest)
+            self._experiments[experiment].remove_package(group, *rest)
         self._experiments.write_to_files()
 
     def set_experiment_required(self, experiment, required, groups):
@@ -203,7 +203,7 @@ class BismarkReleasesTree(object):
                      required,
                      experiment)
         for group in groups:
-            self._experiments.experiment(experiment).set_required(group, required)
+            self._experiments[experiment].set_required(group, required)
         self._experiments.write_to_files()
 
     def commit(self):
