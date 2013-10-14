@@ -497,7 +497,7 @@ class _BismarkRelease(object):
             located.add(located_package.package)
         for package in self._builtin_packages:
             if package not in located:
-                raise Exception('Cannot locate builtin package %s' % key)
+                raise Exception('Cannot locate builtin package %s' % (package,))
 
     def _check_builtin_packages_unique(self):
         logging.info('checking that builtin packages have only one version')

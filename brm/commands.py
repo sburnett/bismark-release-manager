@@ -44,7 +44,7 @@ def list_experiments(releases_tree, args):
         print name
 
 def list_group(releases_tree, args):
-    for node in releases_tree.nodes_in_group(args.name):
+    for node in sorted(releases_tree.nodes_in_group(args.name)):
         print node
 
 def list_groups(releases_tree, args):
@@ -92,10 +92,10 @@ def remove_from_group(releases_tree, args):
     releases_tree.remove_from_group(args.group, args.node)
 
 def require_experiment(releases_tree, args):
-    releases_tree.require_experiment(args.experiment, args.group)
+    releases_tree.set_experiment_required(args.experiment, True, args.group)
 
 def unrequire_experiment(releases_tree, args):
-    releases_tree.unrequire_experiment(args.experiment, args.group)
+    releases_tree.set_experiment_required(args.experiment, False, args.group)
 
 def upgrade_package(releases_tree, args):
     releases_tree.upgrade_package(args.release,

@@ -197,7 +197,7 @@ class BismarkReleasesTree(object):
     def remove_from_experiment(self, experiment, groups, *rest):
         logging.info('Removing groups from experiment %s', experiment)
         for group in groups:
-            self._experiments.experiment(experiment).remove_packages(group, *rest)
+            self._experiments.experiment(experiment).remove_package(group, *rest)
         self._experiments.write_to_files()
 
     def set_experiment_required(self, experiment, required, groups):
