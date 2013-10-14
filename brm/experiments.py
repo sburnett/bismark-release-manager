@@ -1,7 +1,6 @@
 from collections import defaultdict, namedtuple
 import glob
 import os
-import StringIO
 
 import common
 

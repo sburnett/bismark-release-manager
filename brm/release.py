@@ -1,7 +1,4 @@
 from collections import defaultdict, namedtuple
-import copy
-import csv
-import errno
 import glob
 import gzip
 import logging

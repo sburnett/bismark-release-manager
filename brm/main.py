@@ -3,7 +3,6 @@
 import argparse
 import logging
 import os
-import sys
 
 import commands
 import tree

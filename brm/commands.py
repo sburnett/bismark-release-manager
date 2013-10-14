@@ -1,4 +1,3 @@
-import logging
 import os
 
 def add_packages(releases_tree, args):

@@ -1,5 +1,3 @@
-from collections import defaultdict
-import errno
 import glob
 import logging
 import os
