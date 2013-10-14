@@ -47,7 +47,7 @@ def list_group(releases_tree, args):
         print node
 
 def list_groups(releases_tree, args):
-    for group in releases_tree.groups():
+    for group in releases_tree.groups:
         print group
 
 def list_packages(releases_tree, args):

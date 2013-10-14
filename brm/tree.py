@@ -74,15 +74,15 @@ class BismarkReleasesTree(object):
             bismark_release.add_package(filename)
         bismark_release.save()
 
+    @property
     def groups(self):
         logging.info('Getting groups')
-        node_groups = groups.NodeGroups(self._groups_path())
-        return node_groups.groups
+        return groups.NodeGroups(self._groups_path())
 
     def nodes_in_group(self, name):
         logging.info('Getting nodes for group %r', name)
         node_groups = groups.NodeGroups(self._groups_path())
-        return node_groups.nodes_in_group(name)
+        return node_groups[name]
 
     def new_group(self, name):
         logging.info('Creating group %r', name)
@@ -93,7 +93,7 @@ class BismarkReleasesTree(object):
     def delete_group(self, name):
         logging.info('Deleting group %r', name)
         node_groups = groups.NodeGroups(self._groups_path())
-        node_groups.delete_group(name)
+        del node_groups[name]
         node_groups.write_to_files()
 
     def add_to_group(self, name, nodes):
@@ -101,7 +101,7 @@ class BismarkReleasesTree(object):
         node_groups = groups.NodeGroups(self._groups_path())
         for node in nodes:
             logging.info('Adding node %r to group %r', node, name)
-            node_groups.add_to_group(name, node)
+            node_groups[name].add(node)
         node_groups.write_to_files()
 
     def remove_from_group(self, name, nodes):
@@ -109,7 +109,7 @@ class BismarkReleasesTree(object):
         node_groups = groups.NodeGroups(self._groups_path())
         for node in nodes:
             logging.info('Removing node %r from group %r', node, name)
-            node_groups.remove_from_group(name, node)
+            node_groups[name].remove(node)
         node_groups.write_to_files()
 
     def upgrade_package(self,
@@ -128,9 +128,9 @@ class BismarkReleasesTree(object):
                 self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
         for group_name in group_names:
-            if group_name in node_groups.groups:
+            if group_name in node_groups:
                 logging.info('Upgrading group %r', group_name)
-                for node in node_groups.nodes_in_group(group_name):
+                for node in node_groups[group_name]:
                     logging.info('Upgrading node %r in group %r',
                                  node,
                                  group_name)
@@ -153,12 +153,12 @@ class BismarkReleasesTree(object):
         bismark_release = release.open_bismark_release(
                 self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
-        if group_name in node_groups.groups:
+        if group_name in node_groups:
             logging.info('Getting upgrades for group %r', group_name)
-            nodes = node_groups.nodes_in_group(group_name)
+            nodes = node_groups[group_name]
         else:
             logging.info('Getting upgrades for single node %r', group_name)
-            nodes = [group_name]
+            nodes = set([group_name])
         upgrades = set()
         if packages == []:
             logging.info('Getting upgrades for all builtin packages')

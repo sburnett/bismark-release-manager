@@ -383,12 +383,12 @@ class _BismarkRelease(object):
         return architectures
 
     def _resolve_group_to_nodes(self, node_groups, group_or_node):
-        if group_or_node in node_groups.groups:
+        if group_or_node in node_groups:
             logging.info('resolving %r to a set of nodes', group_or_node)
-            return node_groups.nodes_in_group(group_or_node)
+            return node_groups[group_or_node]
         else:
             logging.info('resolving %r to a single node', group_or_node)
-            return [group_or_node]
+            return set([group_or_node])
 
     def _resolve_groups_to_nodes(self, node_groups, group_packages):
         logging.info('resolving groups to nodes')

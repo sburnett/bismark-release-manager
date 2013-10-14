@@ -13,12 +13,19 @@ class NodeGroups(object):
 
         self._read_from_files()
 
-    @property
-    def groups(self):
-        return self._groups.keys()
+    def __iter__(self):
+        return self._groups.__iter__()
 
-    def nodes_in_group(self, name):
+    def iteritems(self):
+        return self._groups.iteritems()
+
+    def __getitem__(self, name):
         return self._groups[name]
+
+    def __delitem__(self, name):
+        del self._groups[name]
+        self._groups_to_delete.add(name)
+        logging.info('Deleted group %r', name)
 
     def new_group(self, name):
         if name in self._reserved_groups:
@@ -28,19 +35,6 @@ class NodeGroups(object):
         self._groups[name] = set()
         self._groups_to_delete.discard(name)
         logging.info('Created new group %r', name)
-
-    def delete_group(self, name):
-        del self._groups[name]
-        self._groups_to_delete.add(name)
-        logging.info('Deleted group %r', name)
-
-    def add_to_group(self, name, node):
-        self._groups[name].add(node)
-        logging.info('Added node %r to group %r', node, name)
-
-    def remove_from_group(self, name, node):
-        self._groups[name].remove(node)
-        logging.info('Removed node %r from group %r', node, name)
 
     def write_to_files(self):
         logging.info('Writing groups in %r', self._root)
