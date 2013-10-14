@@ -16,9 +16,6 @@ class NodeGroups(object):
     def __iter__(self):
         return self._groups.__iter__()
 
-    def iteritems(self):
-        return self._groups.iteritems()
-
     def __getitem__(self, name):
         return self._groups[name]
 
