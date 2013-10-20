@@ -50,6 +50,24 @@ def list_builtin_packages(releases_tree, args):
             continue
         print ' '.join(package)
 
+def list_experiment(releases_tree, args):
+    experiment = releases_tree.experiments[args.experiment]
+    print 'Name:', experiment.name
+    print 'Display name:', experiment.display_name
+    print 'Description:', experiment.description
+    print 'Required:', ', '.join(experiment.required)
+    print 'Revoked:', ', '.join(experiment.revoked)
+    print 'Installed by default:', ', '.join(experiment.installed_by_default)
+    print 'Explicit conflicts:', ', '.join(experiment.conflicts)
+    implicit_conflicts = set()
+    for name, experiment in releases_tree.experiments.iteritems():
+        if name == args.experiment:
+            continue
+        if args.experiment not in experiment.conflicts:
+            continue
+        implicit_conflicts.add(name)
+    print 'Implicit conflicts:', ', '.join(implicit_conflicts)
+
 def list_experiment_packages(releases_tree, args):
     for package in sorted(releases_tree.experiment_packages(args.experiment)):
         print ' '.join(package)

@@ -65,6 +65,10 @@ def main():
     parser_list_builtin_packages.add_argument('architecture', type=str, nargs='?', action='store', help='target architecture (e.g., ar71xx)')
     parser_list_builtin_packages.set_defaults(handler=commands.list_builtin_packages)
 
+    parser_list_experiment = subparsers.add_parser('list-experiment', help='list experiment details')
+    parser_list_experiment.add_argument('experiment', type=str, action='store', help='list details for this experiment')
+    parser_list_experiment.set_defaults(handler=commands.list_experiment)
+
     parser_list_experiment_packages = subparsers.add_parser('list-experiment-packages', help='list packages for an experiment')
     parser_list_experiment_packages.add_argument('experiment', type=str, action='store', help='list packages for this experiment')
     parser_list_experiment_packages.set_defaults(handler=commands.list_experiment_packages)
