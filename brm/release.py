@@ -321,7 +321,7 @@ class _BismarkRelease(object):
             for dirname in glob.iglob(full_pattern):
                 if not os.path.isdir(dirname):
                     continue
-                with open(os.path.join(dirname, 'Upgradable'), 'w') as handle:
+                with open(os.path.join(dirname, 'Upgradable'), 'w'):
                     pass
 
     def save(self):
@@ -482,7 +482,8 @@ class _BismarkRelease(object):
         logging.info('checking that package directories exist')
         for package_directory in self._package_directories:
             if not os.path.isdir(package_directory.name):
-                raise Exception('Package directory %s does not exist' % name)
+                raise Exception('Package directory %s does not exist' % (
+                    (package_directory.name,)))
 
     def _check_builtin_packages_exist(self):
         logging.info('checking that builtin packages exist')
@@ -491,7 +492,8 @@ class _BismarkRelease(object):
             located.add(located_package.package)
         for package in self._builtin_packages:
             if package not in located:
-                raise Exception('Cannot locate builtin package %s' % (package,))
+                raise Exception('Cannot locate builtin package %s' % (
+                    package,))
 
     def _check_builtin_packages_unique(self):
         logging.info('checking that builtin packages have only one version')
@@ -506,7 +508,8 @@ class _BismarkRelease(object):
         logging.info('checking that located packages exist')
         for package in self._located_packages:
             if not os.path.isfile(package.path):
-                raise Exception('Cannot find package %s at %s' % (package.name, package.path))
+                raise Exception('Cannot find package %s at %s' % (
+                    package.name, package.path))
 
     def _check_package_locations_unique(self):
         logging.info('checking that package locations are unique')
@@ -514,21 +517,25 @@ class _BismarkRelease(object):
         for located_package in self._located_packages:
             package = located_package.package
             if package in packages:
-                raise Exception('Multiple locations for package %s' % (package,))
+                raise Exception('Multiple locations for package %s' % (
+                    package,))
             packages.add(package)
 
     def _check_package_fingerprints_valid(self):
         logging.info('checking that package fingerprints are valid')
         fingerprints = {}
         for fingerprinted_package in self._fingerprinted_packages:
-            fingerprints[fingerprinted_package.package] = fingerprinted_package.sha1
+            fingerprints[fingerprinted_package.package] = (
+                    fingerprinted_package.sha1)
         for located_package in self._located_packages:
             if located_package.package not in fingerprints:
-                raise Exception('Missing fingerprint for %s' % key)
+                raise Exception('Missing fingerprint for %s' % (
+                    located_package.package))
             old_sha1 = fingerprints[located_package.package]
             new_sha1 = common.get_fingerprint(located_package.path)
             if old_sha1 != new_sha1:
-                raise Exception('Fingerprint mismatch for %s: %s vs %s' % (key, old_sha1, new_sha1))
+                raise Exception('Fingerprint mismatch for %s: %s vs %s' % (
+                    located_package.package, old_sha1, new_sha1))
 
     def _check_package_fingerprints_unique(self):
         logging.info('checking that package fingerprints are unique')

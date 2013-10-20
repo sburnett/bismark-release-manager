@@ -1,4 +1,3 @@
-from collections import namedtuple
 import csv
 import errno
 import hashlib

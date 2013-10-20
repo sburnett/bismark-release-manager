@@ -246,8 +246,6 @@ class BismarkReleasesTree(object):
             bismark_release.deploy_upgradable_sentinels(destination)
 
     def _deploy_experiments(self, bismark_release, node_groups, destination):
-        release_name = bismark_release.name
-
         bismark_release.deploy_experiment_packages(self._experiments,
                                                    node_groups,
                                                    destination)
