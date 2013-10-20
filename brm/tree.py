@@ -207,6 +207,18 @@ class BismarkReleasesTree(object):
             self._experiments[experiment].set_required(group, required)
         self._experiments.write_to_files()
 
+    def set_experiment_installed_by_default(self,
+                                            experiment,
+                                            installed,
+                                            groups):
+        logging.info('Set install by default to %r for experiment %r',
+                     installed,
+                     experiment)
+        for group in groups:
+            self._experiments[experiment].set_installed_by_default(group,
+                                                                   installed)
+        self._experiments.write_to_files()
+
     def commit(self):
         os.chdir(self._root)
         if not os.path.isdir('.git'):

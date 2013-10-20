@@ -44,6 +44,11 @@ def main():
     parser_deploy.add_argument('destination', type=str, action='store', help='deploy to this directory')
     parser_deploy.set_defaults(handler=commands.deploy)
 
+    parser_install_by_default = subparsers.add_parser('install-by-default', help='Install an experiment by default')
+    parser_install_by_default.add_argument('experiment', type=str, action='store', help='name of the experiment')
+    parser_install_by_default.add_argument('group', nargs='+', type=str, action='store', help='install by default on these routers')
+    parser_install_by_default.set_defaults(handler=commands.install_by_default)
+
     parser_list_architectures = subparsers.add_parser('list-architectures', help='list architectures for a release')
     parser_list_architectures.add_argument('release', type=str, action='store', help='name of the release (e.g., quirm)')
     parser_list_architectures.set_defaults(handler=commands.list_architectures)
@@ -113,6 +118,11 @@ def main():
     parser_require_experiment.add_argument('experiment', type=str, action='store', help='name of the experiment')
     parser_require_experiment.add_argument('group', nargs='+', type=str, action='store', help='require the experiment on these routers')
     parser_require_experiment.set_defaults(handler=commands.require_experiment)
+
+    parser_uninstall_by_default = subparsers.add_parser('uninstall-by-default', help="Don't Install an experiment by default")
+    parser_uninstall_by_default.add_argument('experiment', type=str, action='store', help='name of the experiment')
+    parser_uninstall_by_default.add_argument('group', nargs='+', type=str, action='store', help='install by default on these routers')
+    parser_uninstall_by_default.set_defaults(handler=commands.uninstall_by_default)
 
     parser_unrequire_experiment = subparsers.add_parser('unrequire-experiment', help='stop requiring a group of routers to install an experiment')
     parser_unrequire_experiment.add_argument('experiment', type=str, action='store', help='name of the experiment')

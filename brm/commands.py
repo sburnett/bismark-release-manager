@@ -23,6 +23,16 @@ def delete_group(releases_tree, args):
 def deploy(releases_tree, args):
     releases_tree.deploy(args.destination)
 
+def install_by_default(releases_tree, args):
+    releases_tree.set_experiment_installed_by_default(args.experiment,
+                                                      True,
+                                                      args.group)
+
+def uninstall_by_default(releases_tree, args):
+    releases_tree.set_experiment_installed_by_default(args.experiment,
+                                                      False,
+                                                      args.group)
+
 def list_architectures(releases_tree, args):
     for architecture in sorted(releases_tree.architectures(args.release)):
         print ' '.join(architecture)
