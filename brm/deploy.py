@@ -92,19 +92,11 @@ def deploy_builtin_packages(release, deployment_path):
             relative_source = os.path.relpath(source, link_dir)
             os.symlink(relative_source, link_name)
 
-def resolve_group_to_nodes(node_groups, group_or_node):
-    if group_or_node in node_groups:
-        logging.info('resolving %r to a set of nodes', group_or_node)
-        return node_groups[group_or_node]
-    else:
-        logging.info('resolving %r to a single node', group_or_node)
-        return set([group_or_node])
-
 def resolve_groups_to_nodes(node_groups, group_packages):
     logging.info('resolving groups to nodes')
     node_packages = set()
     for group_package in group_packages:
-        for node in resolve_group_to_nodes(node_groups, group_package.group):
+        for node in node_groups.resolve_to_nodes(group_package.group):
             node_package = NodePackage(node,
                                        group_package.name,
                                        group_package.version,
@@ -235,8 +227,7 @@ def deploy_experiment_configurations(release,
 
     node_configuration_headers = defaultdict(dict)
     for group, headers in group_configuration_headers.items():
-        nodes = resolve_group_to_nodes(node_groups, group)
-        for node in nodes:
+        for node in node_groups.resolve_to_nodes(group):
             for experiment, header in headers.items():
                 if experiment in node_configuration_headers[node]:
                     raise Exception('conflicting experiment defintions')
@@ -253,8 +244,7 @@ def deploy_experiment_configurations(release,
 
     bodies = defaultdict(dict)
     for group, experiment_packages in group_experiment_packages.items():
-        nodes = resolve_group_to_nodes(node_groups, group)
-        for node in nodes:
+        for node in node_groups.resolve_to_nodes(group):
             for experiment, packages in experiment_packages.items():
                 for package in packages:
                     architectures = normalize_architecture(

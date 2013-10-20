@@ -33,6 +33,14 @@ class NodeGroups(object):
         self._groups_to_delete.discard(name)
         logging.info('Created new group %r', name)
 
+    def resolve_to_nodes(self, group_or_node):
+        if group_or_node in self._groups:
+            logging.info('resolving %r to a set of nodes', group_or_node)
+            return self._groups[group_or_node]
+        else:
+            logging.info('resolving %r to a single node', group_or_node)
+            return set([group_or_node])
+
     def write_to_files(self):
         logging.info('Writing groups in %r', self._root)
         try:
