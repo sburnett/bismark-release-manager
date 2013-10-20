@@ -238,6 +238,7 @@ class BismarkReleasesTree(object):
             subprocess.check_call(['git', 'commit', '-a'])
 
     def deploy(self, destination):
+        self.check_constraints()
         node_groups = groups.NodeGroups(self._groups_path())
         releases = []
         for release_name in self.releases:
@@ -248,6 +249,30 @@ class BismarkReleasesTree(object):
                       releases,
                       self._experiments,
                       node_groups)
+
+    def check_constraints(self):
+        logging.info('Checking release constraints')
+        for release_name in self.releases:
+            logging.info('Checking constraints for release %r', release_name)
+            release_path = self._release_path(release_name)
+            bismark_release = release.open_bismark_release(release_path)
+            bismark_release.check_constraints()
+
+            logging.info('Checking if experiments include builtin packages')
+            for builtin_package in bismark_release.builtin_packages:
+                for name, experiment in self._experiments.iteritems():
+                    for package in experiment.packages:
+                        if package.name != builtin_package.name:
+                            continue
+                        if package.release != release_name:
+                            continue
+                        if (package.architecture != builtin_package.architecture
+                                and builtin_package.architecture != 'all'
+                                and package.architecture != 'all'):
+                            continue
+                        raise Exception(
+                                'Experiment %r contains builtin package %r' % (
+                                    name, builtin_package.name))
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
