@@ -38,6 +38,12 @@ class BismarkReleasesTree(object):
             releases.add(os.path.basename(filename))
         return releases
 
+    def normalize_release_name(self, release_name):
+        if release_name == 'all':
+            return self.releases
+        else:
+            return set([release_name])
+
     def builtin_packages(self, release_name):
         logging.info('Getting builtin packages for release %r', release_name)
         bismark_release = release.open_bismark_release(
