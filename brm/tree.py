@@ -256,6 +256,7 @@ class BismarkReleasesTree(object):
         if not os.path.isdir('.git'):
             subprocess.check_call(['git', 'init'])
         patterns = [
+                'experiments/*/*',
                 'groups/*',
                 'releases/*/architectures',
                 'releases/*/builtin-packages',
@@ -263,6 +264,7 @@ class BismarkReleasesTree(object):
                 'releases/*/fingerprinted-images',
                 'releases/*/fingerprinted-packages',
                 'releases/*/package-upgrades',
+                'releases/*/packages/*',
                 ]
         for pattern in patterns:
             for filename in glob.iglob(pattern):
