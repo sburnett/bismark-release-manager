@@ -33,6 +33,10 @@ class LocatedPackage(_LocatedPackage):
     def package(self):
         return Package(self.name, self.version, self.architecture)
 
+    @property
+    def filename(self):
+        return '%s_%s_%s.ipk' % (self.name, self.version, self.architecture)
+
 _GroupPackage = namedtuple('GroupPackage',
                            ['group', 'name', 'version', 'architecture'])
 class GroupPackage(_GroupPackage):
@@ -64,8 +68,9 @@ def new_bismark_release(path, build):
         release._located_images.add(LocatedImage(name, architecture, path))
         sha1 = common.get_fingerprint(path)
         release._fingerprinted_images.add(FingerprintedImage(name, architecture, sha1))
-    for name in build.package_directories():
-        release._package_directories.add(PackageDirectory(name))
+    for dirname in build.package_directories():
+        for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
+            release.add_package(filename)
     release._locate_packages()
     release._fingerprint_packages()
     return release
@@ -79,6 +84,7 @@ class _BismarkRelease(object):
     def __init__(self, path):
         self._path = path
         self._name = os.path.basename(path)
+        self._packages_path = os.path.join(self._path, 'packages')
 
         self._architectures = common.NamedTupleSet(
                 Architecture,
@@ -92,9 +98,6 @@ class _BismarkRelease(object):
         self._located_packages = common.NamedTupleSet(
                 LocatedPackage,
                 self._full_path('located-packages'))
-        self._package_directories = common.NamedTupleSet(
-                PackageDirectory,
-                self._full_path('package-directories'))
         self._fingerprinted_images = common.NamedTupleSet(
                 FingerprintedImage,
                 self._full_path('fingerprinted-images'))
@@ -133,15 +136,21 @@ class _BismarkRelease(object):
 
     def update_base_build(self, build):
         for name in build.package_directories():
-            self._package_directories.add(PackageDirectory(name))
+            for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
+                self.add_package(filename)
         self._locate_packages()
         self._fingerprint_packages()
 
     def add_package(self, filename):
-        package = opkg.parse_ipk(filename)
-        located_package = package.located_package(filename)
+        common.makedirs(self._packages_path)
+        new_basename = '%s.ipk' % common.get_fingerprint(filename)
+        new_filename = os.path.join(self._packages_path, new_basename)
+        shutil.copy2(filename, new_filename)
+
+        package = opkg.parse_ipk(new_filename)
+        located_package = package.located_package(new_filename)
         self._located_packages.add(located_package)
-        fingerprinted_package = opkg.fingerprint_package(filename)
+        fingerprinted_package = opkg.fingerprint_package(new_filename)
         self._fingerprinted_packages.add(fingerprinted_package)
 
     def upgrade_package(self, group, name, version, architecture):
@@ -165,7 +174,9 @@ class _BismarkRelease(object):
                                        self._name,
                                        located_package.architecture)
             common.makedirs(destination)
-            shutil.copy2(located_package.path, destination)
+            destination_path = os.path.join(destination,
+                                            located_package.filename)
+            shutil.copy2(located_package.path, destination_path)
 
     def deploy_images(self, deployment_path):
         for located_image in self._located_images:
@@ -333,13 +344,11 @@ class _BismarkRelease(object):
         self._builtin_packages.write_to_file()
         self._fingerprinted_packages.write_to_file()
         self._located_packages.write_to_file()
-        self._package_directories.write_to_file()
         self._fingerprinted_images.write_to_file()
         self._located_images.write_to_file()
         self._package_upgrades.write_to_file()
 
     def check_constraints(self):
-        self._check_package_directories_exist()
         self._check_builtin_packages_exist()
         self._check_builtin_packages_unique()
         self._check_package_locations_exist()
@@ -355,20 +364,16 @@ class _BismarkRelease(object):
         return os.path.join(self._path, basename)
 
     def _locate_packages(self):
-        logging.info('locating packages in all package directories')
-        for package_directory in self._package_directories:
-            pattern = os.path.join(package_directory.name, '*.ipk')
-            for filename in glob.iglob(pattern):
-                located_package = opkg.locate_package(filename)
-                self._located_packages.add(located_package)
+        logging.info('locating packages in package directory')
+        for filename in glob.iglob(os.path.join(self._packages_path, '*.ipk')):
+            located_package = opkg.locate_package(filename)
+            self._located_packages.add(located_package)
 
     def _fingerprint_packages(self):
         logging.info('fingerinting packages in all package directories')
-        for package_directory in self._package_directories:
-            pattern = os.path.join(package_directory.name, '*.ipk')
-            for filename in glob.iglob(pattern):
-                fingerprinted_package = opkg.fingerprint_package(filename)
-                self._fingerprinted_packages.add(fingerprinted_package)
+        for filename in glob.iglob(os.path.join(self._packages_path, '*.ipk')):
+            fingerprinted_package = opkg.fingerprint_package(filename)
+            self._fingerprinted_packages.add(fingerprinted_package)
 
     def _normalize_architecture(self, architecture):
         logging.info('normalizing architecture %r', architecture)
@@ -458,7 +463,7 @@ class _BismarkRelease(object):
                     'packages',
                     self._name,
                     located_package.architecture,
-                    os.path.basename(located_package.path))
+                    located_package.filename)
             package_paths[located_package.package] = package_path
         return package_paths
 
@@ -477,13 +482,6 @@ class _BismarkRelease(object):
                 link_name = os.path.join(link_dir, os.path.basename(source))
                 relative_source = os.path.relpath(source, link_dir)
                 os.symlink(relative_source, link_name)
-
-    def _check_package_directories_exist(self):
-        logging.info('checking that package directories exist')
-        for package_directory in self._package_directories:
-            if not os.path.isdir(package_directory.name):
-                raise Exception('Package directory %s does not exist' % (
-                    (package_directory.name,)))
 
     def _check_builtin_packages_exist(self):
         logging.info('checking that builtin packages exist')
