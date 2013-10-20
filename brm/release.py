@@ -135,7 +135,7 @@ class _BismarkRelease(object):
             return group_package
 
     def update_base_build(self, build):
-        for name in build.package_directories():
+        for dirname in build.package_directories():
             for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
                 self.add_package(filename)
         self._locate_packages()
