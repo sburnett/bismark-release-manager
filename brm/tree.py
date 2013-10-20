@@ -187,10 +187,18 @@ class BismarkReleasesTree(object):
         self._experiments.new_experiment(name, display_name, description)
         self._experiments.write_to_files()
 
-    def add_to_experiment(self, experiment, groups, *rest):
+    def add_to_experiment(self, experiment, groups, release_name, *rest):
         logging.info('Adding groups to experiment %s', experiment)
+
+        bismark_release = release.open_bismark_release(
+                self._release_path(release_name))
+        package = release.Package(*rest)
+        located_package = bismark_release.locate_package(package)
+        if located_package is None:
+            raise Exception('Cannot find package %r' % (package,))
+
         for group in groups:
-            self._experiments[experiment].add_package(group, *rest)
+            self._experiments[experiment].add_package(group, release_name, *rest)
         self._experiments.write_to_files()
 
     def remove_from_experiment(self, experiment, groups, *rest):

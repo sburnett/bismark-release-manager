@@ -117,6 +117,12 @@ class _BismarkRelease(object):
     def architectures(self):
         return self._architectures
 
+    def locate_package(self, package):
+        for located_package in self._located_packages:
+            if package == located_package.package:
+                return located_package.path
+        return None
+
     def get_upgrade(self, group, package, architecture):
         for group_package in self._package_upgrades:
             if group_package.group != group:
