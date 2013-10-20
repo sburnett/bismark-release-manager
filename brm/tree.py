@@ -4,6 +4,7 @@ import os
 import subprocess
 
 import common
+import deploy
 import experiments
 import groups
 import openwrt
@@ -225,33 +226,16 @@ class BismarkReleasesTree(object):
             subprocess.check_call(['git', 'commit', '-a'])
 
     def deploy(self, destination):
+        node_groups = groups.NodeGroups(self._groups_path())
+        releases = []
         for release_name in self.releases:
             release_path = self._release_path(release_name)
             bismark_release = release.open_bismark_release(release_path)
-            bismark_release.check_constraints()
-
-        for release_name in self.releases:
-            release_path = self._release_path(release_name)
-            bismark_release = release.open_bismark_release(release_path)
-
-            bismark_release.deploy_packages(destination)
-            bismark_release.deploy_images(destination)
-            bismark_release.deploy_builtin_packages(destination)
-            node_groups = groups.NodeGroups(self._groups_path())
-            bismark_release.deploy_upgrades(node_groups, destination)
-
-            self._deploy_experiments(bismark_release, node_groups, destination)
-
-            bismark_release.deploy_packages_gz(destination)
-            bismark_release.deploy_upgradable_sentinels(destination)
-
-    def _deploy_experiments(self, bismark_release, node_groups, destination):
-        bismark_release.deploy_experiment_packages(self._experiments,
-                                                   node_groups,
-                                                   destination)
-        bismark_release.deploy_experiment_configurations(self._experiments,
-                                                         node_groups,
-                                                         destination)
+            releases.append(bismark_release)
+        deploy.deploy(destination,
+                      releases,
+                      self._experiments,
+                      node_groups)
 
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
@@ -261,6 +245,3 @@ class BismarkReleasesTree(object):
 
     def _experiments_path(self):
         return os.path.join(self._root, 'experiments')
-
-    def _experiments(self):
-        return experiments.Experiments(self._experiments_path())
