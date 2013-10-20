@@ -269,7 +269,7 @@ class BismarkReleasesTree(object):
         for pattern in patterns:
             for filename in glob.iglob(pattern):
                 subprocess.check_call(['git', 'add', filename])
-        if subprocess.call(['git', 'diff', '--exit-code']) != 0:
+        if subprocess.call(['git', 'diff', '--cached', '--exit-code']) != 0:
             subprocess.check_call(['git', 'commit', '-a'])
 
     def deploy(self, destination):
