@@ -77,6 +77,9 @@ class _BismarkRelease(object):
         self._builtin_packages = common.NamedTupleSet(
                 Package,
                 self._full_path('builtin-packages'))
+        self._extra_packages = common.NamedTupleSet(
+                Package,
+                self._full_path('extra-packages'))
         self._fingerprinted_packages = common.NamedTupleSet(
                 FingerprintedPackage,
                 self._full_path('fingerprinted-packages'))
@@ -100,6 +103,10 @@ class _BismarkRelease(object):
     @property
     def builtin_packages(self):
         return self._builtin_packages
+
+    @property
+    def extra_packages(self):
+        return self._extra_packages
 
     @property
     def packages(self):
@@ -152,6 +159,14 @@ class _BismarkRelease(object):
         fingerprinted_package = opkg.fingerprint_package(new_filename)
         self._fingerprinted_packages.add(fingerprinted_package)
 
+    def add_extra_package(self, *rest):
+        extra_package = Package(*rest)
+        self._extra_packages.add(extra_package)
+
+    def remove_extra_package(self, *rest):
+        extra_package = Package(*rest)
+        self._extra_packages.remove(extra_package)
+
     def upgrade_package(self, group, name, version, architecture):
         existing_upgrade = None
         for group_package in self._package_upgrades:
@@ -173,6 +188,7 @@ class _BismarkRelease(object):
 
         self._architectures.write_to_file()
         self._builtin_packages.write_to_file()
+        self._extra_packages.write_to_file()
         self._fingerprinted_packages.write_to_file()
         self._located_packages.write_to_file()
         self._fingerprinted_images.write_to_file()
@@ -182,6 +198,8 @@ class _BismarkRelease(object):
     def check_constraints(self):
         self._check_builtin_packages_exist()
         self._check_builtin_packages_unique()
+        self._check_extra_packages_exist()
+        self._check_builtin_extra_overlap()
         self._check_package_locations_exist()
         self._check_package_locations_unique()
         self._check_package_fingerprints_valid()
@@ -215,6 +233,21 @@ class _BismarkRelease(object):
             if package not in located:
                 raise Exception('Cannot locate builtin package %s' % (
                     package,))
+
+    def _check_extra_packages_exist(self):
+        logging.info('checking that builtin packages exist')
+        located = set()
+        for located_package in self._located_packages:
+            located.add(located_package.package)
+        for package in self._extra_packages:
+            if package not in located:
+                raise Exception('Cannot locate extra package %s' % (
+                    package,))
+
+    def _check_builtin_extra_overlap(self):
+        logging.info("checking if extra packages overlap with builtins")
+        if self._extra_packages.intersection(self._builtin_packages):
+            raise Exception('builtin and extra packages cannot overlap')
 
     def _check_builtin_packages_unique(self):
         logging.info('checking that builtin packages have only one version')

@@ -14,6 +14,13 @@ def main():
     parser.add_argument('--loglevel', dest='loglevel', action='store', choices=log_levels, default='WARNING', help='control verbosity of logging')
     subparsers = parser.add_subparsers(title='commands')
 
+    parser_add_extra_package = subparsers.add_parser('add-extra-package', help='add packages to the "extra" set')
+    parser_add_extra_package.add_argument('release', type=str, action='store', help='add package from this release (e.g., quirm)')
+    parser_add_extra_package.add_argument('package', type=str, action='store', help='name of the package to add')
+    parser_add_extra_package.add_argument('version', type=str, action='store', help='version of the package')
+    parser_add_extra_package.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_add_extra_package.set_defaults(handler=commands.add_extra_package)
+
     parser_add_packages = subparsers.add_parser('add-packages', help='add packages to a release')
     parser_add_packages.add_argument('release', type=str, action='store', help='add packages for this release (e.g., quirm)')
     parser_add_packages.add_argument('ipk', nargs='+', type=str, action='store', help='a compiled OpenWRT buildroot for the release')
@@ -65,6 +72,11 @@ def main():
     parser_list_experiments = subparsers.add_parser('list-experiments', help='list all experiments')
     parser_list_experiments.set_defaults(handler=commands.list_experiments)
 
+    parser_list_extra_packages = subparsers.add_parser('list-extra-packages', help='list "extra" packages for a release')
+    parser_list_extra_packages.add_argument('release', type=str, action='store', help='name of the release (e.g., quirm)')
+    parser_list_extra_packages.add_argument('architecture', type=str, nargs='?', action='store', help='target architecture (e.g., ar71xx)')
+    parser_list_extra_packages.set_defaults(handler=commands.list_extra_packages)
+
     parser_list_group = subparsers.add_parser('list-group', help='list nodes in a groups')
     parser_list_group.add_argument('name', type=str, action='store', help='name of the new group')
     parser_list_group.set_defaults(handler=commands.list_group)
@@ -99,6 +111,13 @@ def main():
     parser_new_release.add_argument('name', type=str, action='store', help='name of this release (e.g., quirm)')
     parser_new_release.add_argument('buildroot', type=str, action='store', help='a compiled OpenWRT buildroot for the release')
     parser_new_release.set_defaults(handler=commands.new_release)
+
+    parser_remove_extra_package = subparsers.add_parser('remove-extra-package', help='remove packages from the "extra" set')
+    parser_remove_extra_package.add_argument('release', type=str, action='store', help='remove package from this release (e.g., quirm)')
+    parser_remove_extra_package.add_argument('package', type=str, action='store', help='name of the package to remove')
+    parser_remove_extra_package.add_argument('version', type=str, action='store', help='version of the package')
+    parser_remove_extra_package.add_argument('architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_remove_extra_package.set_defaults(handler=commands.remove_extra_package)
 
     parser_remove_from_experiment = subparsers.add_parser('remove-from-experiment', help='remove a package from an experiment')
     parser_remove_from_experiment.add_argument('experiment', type=str, action='store', help='experiment identifier')

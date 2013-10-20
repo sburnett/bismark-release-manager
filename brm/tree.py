@@ -44,6 +44,12 @@ class BismarkReleasesTree(object):
                 self._release_path(release_name))
         return bismark_release.builtin_packages
 
+    def extra_packages(self, release_name):
+        logging.info('Getting extra packages for release %r', release_name)
+        bismark_release = release.open_bismark_release(
+                self._release_path(release_name))
+        return bismark_release.extra_packages
+
     def architectures(self, release_name):
         logging.info('Getting architectures for release %r', release_name)
         bismark_release = release.open_bismark_release(
@@ -73,6 +79,18 @@ class BismarkReleasesTree(object):
                          filename,
                          release_name)
             bismark_release.add_package(filename)
+        bismark_release.save()
+
+    def add_extra_package(self, release_name, *rest):
+        bismark_release = release.open_bismark_release(
+                self._release_path(release_name))
+        bismark_release.add_extra_package(*rest)
+        bismark_release.save()
+
+    def remove_extra_package(self, release_name, *rest):
+        bismark_release = release.open_bismark_release(
+                self._release_path(release_name))
+        bismark_release.remove_extra_package(*rest)
         bismark_release.save()
 
     @property
@@ -235,6 +253,7 @@ class BismarkReleasesTree(object):
                 'groups/*',
                 'releases/*/architectures',
                 'releases/*/builtin-packages',
+                'releases/*/extra-packages',
                 'releases/*/fingerprinted-images',
                 'releases/*/fingerprinted-packages',
                 'releases/*/package-upgrades',
@@ -281,6 +300,22 @@ class BismarkReleasesTree(object):
                         raise Exception(
                                 'Experiment %r contains builtin package %r' % (
                                     name, builtin_package.name))
+
+            logging.info('Checking if experiments include extra packages')
+            for extra_package in bismark_release.extra_packages:
+                for name, experiment in self._experiments.iteritems():
+                    for package in experiment.packages:
+                        if package.name != extra_package.name:
+                            continue
+                        if package.release != release_name:
+                            continue
+                        if (package.architecture != extra_package.architecture
+                                and extra_package.architecture != 'all'
+                                and package.architecture != 'all'):
+                            continue
+                        raise Exception(
+                                'Experiment %r contains "extra" package %r' % (
+                                    name, extra_package.name))
 
         self._experiments.check_constraints()
 

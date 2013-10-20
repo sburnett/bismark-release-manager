@@ -24,6 +24,7 @@ def deploy(deployment_path, releases, experiments, node_groups):
         deploy_packages(release, deployment_path)
         deploy_images(release, deployment_path)
         deploy_builtin_packages(release, deployment_path)
+        deploy_extra_packages(release, deployment_path)
         deploy_upgrades(release, node_groups, deployment_path)
         deploy_experiment_packages(release,
                                    experiments,
@@ -80,6 +81,21 @@ def normalize_architecture(release, architecture):
 def deploy_builtin_packages(release, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
     for package in release.builtin_packages:
+        source = package_paths[package]
+        architectures = normalize_architecture(release, package.architecture)
+        for architecture in architectures:
+            link_dir = os.path.join(deployment_path,
+                                    release.name,
+                                    architecture,
+                                    'packages')
+            common.makedirs(link_dir)
+            link_name = os.path.join(link_dir, os.path.basename(source))
+            relative_source = os.path.relpath(source, link_dir)
+            os.symlink(relative_source, link_name)
+
+def deploy_extra_packages(release, deployment_path):
+    package_paths = deployment_package_paths(release, deployment_path)
+    for package in release.extra_packages:
         source = package_paths[package]
         architectures = normalize_architecture(release, package.architecture)
         for architecture in architectures:

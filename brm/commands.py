@@ -1,5 +1,11 @@
 import os
 
+def add_extra_package(releases_tree, args):
+    releases_tree.add_extra_package(args.release,
+                                    args.package,
+                                    args.version,
+                                    args.architecture)
+
 def add_packages(releases_tree, args):
     releases_tree.add_packages(args.release, args.ipk)
 
@@ -52,6 +58,13 @@ def list_experiments(releases_tree, args):
     for name in sorted(releases_tree.experiments):
         print name
 
+def list_extra_packages(releases_tree, args):
+    for package in sorted(releases_tree.extra_packages(args.release)):
+        if (args.architecture is not None and
+                package.architecture != args.architecture):
+            continue
+        print ' '.join(package)
+
 def list_group(releases_tree, args):
     for node in sorted(releases_tree.nodes_in_group(args.name)):
         print node
@@ -88,6 +101,12 @@ def new_group(releases_tree, args):
 def new_release(releases_tree, args):
     openwrt_build_root = os.path.expanduser(args.buildroot)
     releases_tree.new_release(args.name, openwrt_build_root)
+
+def remove_extra_package(releases_tree, args):
+    releases_tree.remove_extra_package(args.release,
+                                       args.package,
+                                       args.version,
+                                       args.architecture)
 
 def remove_from_experiment(releases_tree, args):
     releases_tree.remove_from_experiment(args.experiment,
