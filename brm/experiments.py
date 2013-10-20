@@ -1,5 +1,6 @@
 from collections import defaultdict, namedtuple
 import glob
+import logging
 import os
 
 import common
@@ -190,7 +191,24 @@ class Experiments(object):
         experiment_path = self._experiment_path(name)
         self._experiments[name] = new_experiment(experiment_path, *rest)
 
+    def check_constraints(self):
+        self._check_required_experiments_conflict()
+
+    def _check_required_experiments_conflict(self):
+        logging.info('Check if required experiments conflict')
+        must_be_installed = set()
+        cannot_be_installed = set()
+        for name, experiment in self.iteritems():
+            if not experiment.required:
+                continue
+            must_be_installed.add(experiment.name)
+            cannot_be_installed.update(experiment.conflicts)
+        if must_be_installed.intersection(cannot_be_installed):
+            raise Exception('Required experiments conflict: %r vs %r' % (
+                must_be_installed, cannot_be_installed))
+
     def write_to_files(self):
+        self.check_constraints()
         for name, experiment in self._experiments.items():
             experiment.write_to_files()
 

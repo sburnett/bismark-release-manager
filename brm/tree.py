@@ -274,6 +274,8 @@ class BismarkReleasesTree(object):
                                 'Experiment %r contains builtin package %r' % (
                                     name, builtin_package.name))
 
+        self._experiments.check_constraints()
+
     def _release_path(self, release_name):
         return os.path.join(self._root, 'releases', release_name)
 
