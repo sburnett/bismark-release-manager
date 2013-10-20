@@ -69,20 +69,11 @@ def deployment_package_paths(release, deployment_path):
         package_paths[located_package.package] = package_path
     return package_paths
 
-def normalize_architecture(release, architecture):
-    logging.info('normalizing architecture %r', architecture)
-    if architecture != 'all':
-        return [architecture]
-    architectures = []
-    for architecture in release.architectures:
-        architectures.append(architecture.name)
-    return architectures
-
 def deploy_builtin_packages(release, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
     for package in release.builtin_packages:
         source = package_paths[package]
-        architectures = normalize_architecture(release, package.architecture)
+        architectures = release.normalize_architecture(package.architecture)
         for architecture in architectures:
             link_dir = os.path.join(deployment_path,
                                     release.name,
@@ -97,7 +88,7 @@ def deploy_extra_packages(release, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
     for package in release.extra_packages:
         source = package_paths[package]
-        architectures = normalize_architecture(release, package.architecture)
+        architectures = release.normalize_architecture(package.architecture)
         for architecture in architectures:
             link_dir = os.path.join(deployment_path,
                                     release.name,
@@ -160,7 +151,7 @@ def symlink_packages(release, packages, subdirectory, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
     for package in packages:
         source = package_paths[package.package]
-        architectures = normalize_architecture(release, package.architecture)
+        architectures = release.normalize_architecture(package.architecture)
         for architecture in architectures:
             link_dir = os.path.join(deployment_path,
                                     release.name,
@@ -263,8 +254,8 @@ def deploy_experiment_configurations(release,
         for node in node_groups.resolve_to_nodes(group):
             for experiment, packages in experiment_packages.items():
                 for package in packages:
-                    architectures = normalize_architecture(
-                            release, package.architecture)
+                    architectures = release.normalize_architecture(
+                            package.architecture)
                     for architecture in architectures:
                         key = architecture, experiment, package.name
                         if key in bodies[node]:

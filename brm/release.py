@@ -124,6 +124,15 @@ class _BismarkRelease(object):
     def architectures(self):
         return self._architectures
 
+    def normalize_architecture(self, architecture):
+        logging.info('normalizing architecture %r', architecture)
+        if architecture != 'all':
+            return [architecture]
+        architectures = []
+        for architecture in self._architectures:
+            architectures.append(architecture.name)
+        return architectures
+
     def locate_package(self, package):
         for located_package in self._located_packages:
             if package == located_package.package:
