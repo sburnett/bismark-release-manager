@@ -45,13 +45,17 @@ def new_bismark_release(path, build):
     release = _BismarkRelease(path)
     for name in build.architectures():
         release._architectures.add(Architecture(name))
-    release._builtin_packages.update(build.builtin_packages())
-    for path, architecture in build.images():
-        release.add_image(path, architecture)
     for dirname in build.package_directories():
         for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
             release.add_package(filename)
     release._fingerprint_packages()
+    release._builtin_packages.update(build.builtin_packages())
+    for package in release.packages:
+        if package.package in release.builtin_packages:
+            continue
+        release._extra_packages.add(package.package)
+    for path, architecture in build.images():
+        release.add_image(path, architecture)
     return release
 
 
