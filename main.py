@@ -133,6 +133,24 @@ def create_experiments_subcommands(subparsers):
     parser_unrequire_experiment.set_defaults(
         handler=subcommands.unrequire_experiment)
 
+    parser_revoke_experiment = subparsers.add_parser(
+        'revoke', help='revoke an experiment on a group of routers')
+    parser_revoke_experiment.add_argument(
+        'experiment', type=str, action='store', help='name of the experiment')
+    parser_revoke_experiment.add_argument(
+        'group', nargs='+', type=str, action='store', help='revoke the experiment on these routers')
+    parser_revoke_experiment.set_defaults(
+        handler=subcommands.revoke_experiment)
+
+    parser_unrevoke_experiment = subparsers.add_parser(
+        'unrevoke', help='stop revoking a group of routers to install an experiment')
+    parser_unrevoke_experiment.add_argument(
+        'experiment', type=str, action='store', help='name of the experiment')
+    parser_unrevoke_experiment.add_argument(
+        'group', nargs='+', type=str, action='store', help='stop revoking the experiment on these routers')
+    parser_unrevoke_experiment.set_defaults(
+        handler=subcommands.unrevoke_experiment)
+
 
 def create_packages_subcommands(subparsers):
     parser_add_packages = subparsers.add_parser(

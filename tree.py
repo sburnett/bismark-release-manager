@@ -242,6 +242,14 @@ class BismarkReleasesTree(object):
             self._experiments[experiment].set_required(group, required)
         self._experiments.write_to_files()
 
+    def set_experiment_revoked(self, experiment, revoked, groups):
+        logging.info('Set revoked to %r for experiment %r',
+                     revoked,
+                     experiment)
+        for group in groups:
+            self._experiments[experiment].set_revoked(group, revoked)
+        self._experiments.write_to_files()
+
     def set_experiment_installed_by_default(self,
                                             experiment,
                                             installed,

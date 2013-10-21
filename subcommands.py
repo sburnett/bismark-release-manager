@@ -171,6 +171,14 @@ def unrequire_experiment(releases_tree, args):
     releases_tree.set_experiment_required(args.experiment, False, args.group)
 
 
+def revoke_experiment(releases_tree, args):
+    releases_tree.set_experiment_revoked(args.experiment, True, args.group)
+
+
+def unrevoke_experiment(releases_tree, args):
+    releases_tree.set_experiment_revoked(args.experiment, False, args.group)
+
+
 def upgrade_package(releases_tree, args):
     releases_tree.upgrade_package(args.release,
                                   args.package,
