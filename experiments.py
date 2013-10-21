@@ -58,10 +58,15 @@ class _Experiment(object):
         return self._description
 
     @property
-    def groups(self):
+    def header_groups(self):
         groups = set()
-        for package in self._packages:
-            groups.add(package.group)
+        for group_name in self._installed_by_default:
+            groups.add(group_name.group)
+        for group_name in self._required:
+            groups.add(group_name.group)
+        for group_name in self._revoked:
+            groups.add(group_name.group)
+        groups.add('default')
         return groups
 
     @property

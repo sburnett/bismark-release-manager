@@ -133,11 +133,8 @@ def resolve_groups_to_nodes(node_groups, group_packages):
     return node_packages
 
 
-def normalize_default_packages(node_packages):
+def normalize_default_packages(node_packages, nodes):
     logging.info('normalizing packages')
-    nodes = set()
-    for node_package in node_packages:
-        nodes.add(node_package.node)
     packages = defaultdict(dict)
     for node_package in node_packages:
         if node_package.node == 'default':
@@ -181,7 +178,10 @@ def deploy_upgrades(release, node_groups, deployment_path):
     resolved_upgrades = resolve_groups_to_nodes(
         node_groups,
         release.package_upgrades)
-    upgraded_packages = normalize_default_packages(resolved_upgrades)
+    nodes = set()
+    for node_package in resolved_upgrades:
+        nodes.add(node_package.node)
+    upgraded_packages = normalize_default_packages(resolved_upgrades, nodes)
     symlink_packages(release,
                      upgraded_packages,
                      'updates-device',
@@ -200,7 +200,13 @@ def deploy_experiment_packages(release,
                 continue
             all_group_packages.add(group_package)
     node_packages = resolve_groups_to_nodes(node_groups, all_group_packages)
-    normalized_packages = normalize_default_packages(node_packages)
+    nodes = set()
+    for node_package in node_packages:
+        nodes.add(node_package.node)
+    for _, experiment in experiments.iteritems():
+        for group in experiment.header_groups:
+            nodes.update(node_groups.resolve_to_nodes(group))
+    normalized_packages = normalize_default_packages(node_packages, nodes)
     symlink_packages(release,
                      normalized_packages,
                      'experiments-device',
@@ -229,13 +235,10 @@ def bool_to_string(b):
         return '0'
 
 
-def deploy_experiment_configurations(release,
-                                     experiments,
-                                     node_groups,
-                                     deployment_path):
+def normalized_configuration_headers(experiments, node_groups):
     group_configuration_headers = defaultdict(dict)
     for name, experiment in experiments.iteritems():
-        for group in experiment.groups:
+        for group in experiment.header_groups:
             s = StringIO.StringIO()
             print >>s, "config 'experiment' '%s'" % experiment.name
             print >>s, "    option 'display_name' '%s'" % experiment.display_name
@@ -258,9 +261,10 @@ def deploy_experiment_configurations(release,
                 if experiment in node_configuration_headers[node]:
                     raise Exception('conflicting experiment defintions')
                 node_configuration_headers[node][experiment] = header
-    normalized_headers = normalize_default_experiments(
-        node_configuration_headers)
+    return normalize_default_experiments(node_configuration_headers)
 
+
+def normalized_configuration_bodies(release, experiments, node_groups):
     group_experiment_packages = defaultdict(lambda: defaultdict(set))
     for name, experiment in experiments.iteritems():
         for group_package in experiment.packages:
@@ -282,14 +286,37 @@ def deploy_experiment_configurations(release,
                             raise Exception(
                                 'conflicting packages for experiment')
                         bodies[node][key] = package
-    normalized_bodies = normalize_default_experiments(bodies)
+    return normalize_default_experiments(bodies)
+
+
+def deploy_experiment_configurations(release,
+                                     experiments,
+                                     node_groups,
+                                     deployment_path):
+    normalized_headers = normalized_configuration_headers(
+        experiments, node_groups)
+    normalized_bodies = normalized_configuration_bodies(
+        release, experiments, node_groups)
+
+    all_nodes = set()
+    all_nodes.update(normalized_headers.keys())
+    all_nodes.update(normalized_bodies.keys())
 
     configurations = defaultdict(dict)
-    for node, packages in normalized_bodies.items():
+    for node in all_nodes:
+        if node in normalized_bodies:
+            packages = normalized_bodies[node]
+        elif 'default' in normalized_bodies:
+            packages = normalized_bodies['default']
+        else:
+            continue
         for architecture, experiment, name in packages:
             if experiment not in configurations[architecture, node]:
-                configurations[architecture, node][experiment] = (
-                    normalized_headers[node][experiment])
+                if node in normalized_headers and experiment in normalized_headers[node]:
+                    headers = normalized_headers[node][experiment]
+                else:
+                    headers = normalized_headers['default'][experiment]
+                configurations[architecture, node][experiment] = headers
             configurations[architecture, node][experiment] += (
                 "    list 'package' '%s'\n" % name)
 
