@@ -171,11 +171,12 @@ class _BismarkRelease(object):
     def add_image(self, filename, architecture):
         common.makedirs(self._images_path)
         new_filename = os.path.join(
-                self._images_path, os.path.basename(filename))
+            self._images_path, os.path.basename(filename))
         shutil.copy2(filename, new_filename)
 
         name = os.path.basename(filename)
-        self._located_images.add(LocatedImage(name, architecture, new_filename))
+        self._located_images.add(
+            LocatedImage(name, architecture, new_filename))
         sha1 = common.get_fingerprint(new_filename)
         self._fingerprinted_images.add(
             FingerprintedImage(name, architecture, sha1))

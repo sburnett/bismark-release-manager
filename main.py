@@ -43,7 +43,8 @@ def create_groups_subcommands(subparsers):
         'group', type=str, action='store', help='name of the group')
     parser_remove_from_group.add_argument(
         'node', nargs='+', type=str, action='store', help='nodes to remove')
-    parser_remove_from_group.set_defaults(handler=subcommands.remove_from_group)
+    parser_remove_from_group.set_defaults(
+        handler=subcommands.remove_from_group)
 
 
 def create_experiments_subcommands(subparsers):
@@ -67,7 +68,8 @@ def create_experiments_subcommands(subparsers):
         'version', type=str, action='store', help='version of the package')
     parser_add_to_experiment.add_argument(
         'group', nargs='+', type=str, action='store', help='enable experiment on this group of routers')
-    parser_add_to_experiment.set_defaults(handler=subcommands.add_to_experiment)
+    parser_add_to_experiment.set_defaults(
+        handler=subcommands.add_to_experiment)
 
     parser_remove_from_experiment = subparsers.add_parser(
         'remove-package', help='remove a package from an experiment')
@@ -105,7 +107,8 @@ def create_experiments_subcommands(subparsers):
         'experiment', type=str, action='store', help='name of the experiment')
     parser_install_by_default.add_argument(
         'group', nargs='+', type=str, action='store', help='install by default on these routers')
-    parser_install_by_default.set_defaults(handler=subcommands.install_by_default)
+    parser_install_by_default.set_defaults(
+        handler=subcommands.install_by_default)
 
     parser_uninstall_by_default = subparsers.add_parser(
         'uninstall-by-default', help="Don't Install an experiment by default")
@@ -122,7 +125,8 @@ def create_experiments_subcommands(subparsers):
         'experiment', type=str, action='store', help='name of the experiment')
     parser_require_experiment.add_argument(
         'group', nargs='+', type=str, action='store', help='require the experiment on these routers')
-    parser_require_experiment.set_defaults(handler=subcommands.require_experiment)
+    parser_require_experiment.set_defaults(
+        handler=subcommands.require_experiment)
 
     parser_unrequire_experiment = subparsers.add_parser(
         'unrequire', help='stop requiring a group of routers to install an experiment')
@@ -220,7 +224,8 @@ def create_packages_subcommands(subparsers):
         'version', type=str, action='store', help='version of the package')
     parser_add_extra_package.add_argument(
         'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
-    parser_add_extra_package.set_defaults(handler=subcommands.add_extra_package)
+    parser_add_extra_package.set_defaults(
+        handler=subcommands.add_extra_package)
 
     parser_upgrade_package = subparsers.add_parser(
         'upgrade-package', help='upgrade a builtin package on a set of routers')
@@ -246,7 +251,8 @@ def create_releases_subcommands(subparsers):
         'list-architectures', help='list architectures for a release')
     parser_list_architectures.add_argument(
         'release', type=str, action='store', help='name of the release (e.g., quirm)')
-    parser_list_architectures.set_defaults(handler=subcommands.list_architectures)
+    parser_list_architectures.set_defaults(
+        handler=subcommands.list_architectures)
 
     parser_new_release = subparsers.add_parser(
         'new', help='create a new release')

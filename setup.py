@@ -1,13 +1,13 @@
 from setuptools import setup
 
 setup(
-        name='bismark-release-manager',
-        version='1.0.6',
-        description='Manage releases, packages, experiments and upgrades '
-                    'for the BISmark deployment.',
-        license='MIT License',
-        author='Sam Burnett',
-        py_modules=[
+    name='bismark-release-manager',
+    version='1.0.6',
+    description='Manage releases, packages, experiments and upgrades '
+    'for the BISmark deployment.',
+    license='MIT License',
+    author='Sam Burnett',
+    py_modules=[
             'common',
             'deploy',
             'experiments',
@@ -18,6 +18,6 @@ setup(
             'release',
             'subcommands',
             'tree',
-        ],
-        entry_points={'console_scripts': ['brm = main:main']},
-    )
+    ],
+    entry_points={'console_scripts': ['brm = main:main']},
+)
