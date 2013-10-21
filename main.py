@@ -228,7 +228,7 @@ def create_packages_subcommands(subparsers):
         handler=subcommands.add_extra_package)
 
     parser_upgrade_package = subparsers.add_parser(
-        'upgrade-package', help='upgrade a builtin package on a set of routers')
+        'upgrade', help='upgrade a builtin package on a set of routers')
     parser_upgrade_package.add_argument(
         'release', type=str, action='store', help='upgrade package for this release (e.g., quirm)')
     parser_upgrade_package.add_argument(
