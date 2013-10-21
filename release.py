@@ -63,11 +63,7 @@ def new_bismark_release(path, build):
         release._architectures.add(Architecture(name))
     release._builtin_packages.update(build.builtin_packages())
     for path, architecture in build.images():
-        name = os.path.basename(path)
-        release._located_images.add(LocatedImage(name, architecture, path))
-        sha1 = common.get_fingerprint(path)
-        release._fingerprinted_images.add(
-            FingerprintedImage(name, architecture, sha1))
+        release.add_image(path, architecture)
     for dirname in build.package_directories():
         for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
             release.add_package(filename)
@@ -88,6 +84,7 @@ class _BismarkRelease(object):
         self._path = path
         self._name = os.path.basename(path)
         self._packages_path = os.path.join(self._path, 'packages')
+        self._images_path = os.path.join(self._path, 'images')
 
         self._architectures = common.NamedTupleSet(
             Architecture,
@@ -185,6 +182,18 @@ class _BismarkRelease(object):
         self._located_packages.add(located_package)
         fingerprinted_package = opkg.fingerprint_package(new_filename)
         self._fingerprinted_packages.add(fingerprinted_package)
+
+    def add_image(self, filename, architecture):
+        common.makedirs(self._images_path)
+        new_filename = os.path.join(
+                self._images_path, os.path.basename(filename))
+        shutil.copy2(filename, new_filename)
+
+        name = os.path.basename(filename)
+        self._located_images.add(LocatedImage(name, architecture, new_filename))
+        sha1 = common.get_fingerprint(new_filename)
+        self._fingerprinted_images.add(
+            FingerprintedImage(name, architecture, sha1))
 
     def add_extra_package(self, *rest):
         extra_package = Package(*rest)

@@ -266,6 +266,7 @@ class BismarkReleasesTree(object):
             'releases/*/extra-packages',
             'releases/*/fingerprinted-images',
             'releases/*/fingerprinted-packages',
+            'releases/*/images/*',
             'releases/*/package-upgrades',
             'releases/*/packages/*',
         ]
