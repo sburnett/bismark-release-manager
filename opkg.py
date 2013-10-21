@@ -78,15 +78,3 @@ def fingerprint_package(filename):
         version=package.version,
         architecture=package.architecture,
         sha1=sha1)
-
-
-def locate_package(filename):
-    logging.info('Locating package %r', filename)
-    package = parse_ipk(filename)
-    if package is None:
-        return None
-    return release.LocatedPackage(
-        name=package.name,
-        version=package.version,
-        architecture=package.architecture,
-        path=filename)

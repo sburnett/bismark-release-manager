@@ -13,29 +13,13 @@ FingerprintedImage = namedtuple(
     'FingerprintedImage', ['name', 'architecture', 'sha1'])
 LocatedImage = namedtuple('LocatedImage', ['name', 'architecture', 'path'])
 
-_Package = namedtuple('Package', ['name', 'version', 'architecture'])
-
-
-class Package(_Package):
-
-    def located_package(self, filename):
-        return LocatedPackage(self.name, self.version, self.architecture, filename)
+Package = namedtuple('Package', ['name', 'version', 'architecture'])
 
 _FingerprintedPackage = namedtuple('FingerprintedPackage',
                                    ['name', 'version', 'architecture', 'sha1'])
 
 
 class FingerprintedPackage(_FingerprintedPackage):
-
-    @property
-    def package(self):
-        return Package(self.name, self.version, self.architecture)
-
-_LocatedPackage = namedtuple('LocatedPackage',
-                             ['name', 'version', 'architecture', 'path'])
-
-
-class LocatedPackage(_LocatedPackage):
 
     @property
     def package(self):
@@ -67,7 +51,6 @@ def new_bismark_release(path, build):
     for dirname in build.package_directories():
         for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
             release.add_package(filename)
-    release._locate_packages()
     release._fingerprint_packages()
     return release
 
@@ -98,9 +81,6 @@ class _BismarkRelease(object):
         self._fingerprinted_packages = common.NamedTupleSet(
             FingerprintedPackage,
             self._full_path('fingerprinted-packages'))
-        self._located_packages = common.NamedTupleSet(
-            LocatedPackage,
-            self._full_path('located-packages'))
         self._fingerprinted_images = common.NamedTupleSet(
             FingerprintedImage,
             self._full_path('fingerprinted-images'))
@@ -125,7 +105,11 @@ class _BismarkRelease(object):
 
     @property
     def packages(self):
-        return self._located_packages
+        return self._fingerprinted_packages
+
+    @property
+    def packages_path(self):
+        return self._packages_path
 
     @property
     def package_upgrades(self):
@@ -149,9 +133,10 @@ class _BismarkRelease(object):
         return architectures
 
     def locate_package(self, package):
-        for located_package in self._located_packages:
-            if package == located_package.package:
-                return located_package.path
+        for fingerprinted_package in self._fingerprinted_packages:
+            if package == fingerprinted_package.package:
+                return os.path.join(self._packages_path,
+                                    '%s.ipk' % fingerprinted_package.sha1)
         return None
 
     def get_upgrade(self, group, package, architecture):
@@ -168,7 +153,6 @@ class _BismarkRelease(object):
         for dirname in build.package_directories():
             for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
                 self.add_package(filename)
-        self._locate_packages()
         self._fingerprint_packages()
 
     def add_package(self, filename):
@@ -177,9 +161,6 @@ class _BismarkRelease(object):
         new_filename = os.path.join(self._packages_path, new_basename)
         shutil.copy2(filename, new_filename)
 
-        package = opkg.parse_ipk(new_filename)
-        located_package = package.located_package(new_filename)
-        self._located_packages.add(located_package)
         fingerprinted_package = opkg.fingerprint_package(new_filename)
         self._fingerprinted_packages.add(fingerprinted_package)
 
@@ -226,7 +207,6 @@ class _BismarkRelease(object):
         self._builtin_packages.write_to_file()
         self._extra_packages.write_to_file()
         self._fingerprinted_packages.write_to_file()
-        self._located_packages.write_to_file()
         self._fingerprinted_images.write_to_file()
         self._located_images.write_to_file()
         self._package_upgrades.write_to_file()
@@ -248,12 +228,6 @@ class _BismarkRelease(object):
     def _full_path(self, basename):
         return os.path.join(self._path, basename)
 
-    def _locate_packages(self):
-        logging.info('locating packages in package directory')
-        for filename in glob.iglob(os.path.join(self._packages_path, '*.ipk')):
-            located_package = opkg.locate_package(filename)
-            self._located_packages.add(located_package)
-
     def _fingerprint_packages(self):
         logging.info('fingerinting packages in all package directories')
         for filename in glob.iglob(os.path.join(self._packages_path, '*.ipk')):
@@ -262,21 +236,21 @@ class _BismarkRelease(object):
 
     def _check_builtin_packages_exist(self):
         logging.info('checking that builtin packages exist')
-        located = set()
-        for located_package in self._located_packages:
-            located.add(located_package.package)
+        fingerprinted = set()
+        for fingerprinted_package in self._fingerprinted_packages:
+            fingerprinted.add(fingerprinted_package.package)
         for package in self._builtin_packages:
-            if package not in located:
+            if package not in fingerprinted:
                 raise Exception('Cannot locate builtin package %s' % (
                     package,))
 
     def _check_extra_packages_exist(self):
         logging.info('checking that builtin packages exist')
-        located = set()
-        for located_package in self._located_packages:
-            located.add(located_package.package)
+        fingerprinted = set()
+        for fingerprinted_package in self._fingerprinted_packages:
+            fingerprinted.add(fingerprinted_package.package)
         for package in self._extra_packages:
-            if package not in located:
+            if package not in fingerprinted:
                 raise Exception('Cannot locate extra package %s' % (
                     package,))
 
@@ -295,17 +269,19 @@ class _BismarkRelease(object):
             package_keys.add(key)
 
     def _check_package_locations_exist(self):
-        logging.info('checking that located packages exist')
-        for package in self._located_packages:
-            if not os.path.isfile(package.path):
+        logging.info('checking that packages exist')
+        for package in self._fingerprinted_packages:
+            filename = os.path.join(self._packages_path,
+                                    '%s.ipk' % package.sha1)
+            if not os.path.isfile(filename):
                 raise Exception('Cannot find package %s at %s' % (
                     package.name, package.path))
 
     def _check_package_locations_unique(self):
         logging.info('checking that package locations are unique')
         packages = set()
-        for located_package in self._located_packages:
-            package = located_package.package
+        for fingerprinted_package in self._fingerprinted_packages:
+            package = fingerprinted_package.package
             if package in packages:
                 raise Exception('Multiple locations for package %s' % (
                     package,))
@@ -313,19 +289,10 @@ class _BismarkRelease(object):
 
     def _check_package_fingerprints_valid(self):
         logging.info('checking that package fingerprints are valid')
-        fingerprints = {}
-        for fingerprinted_package in self._fingerprinted_packages:
-            fingerprints[fingerprinted_package.package] = (
-                fingerprinted_package.sha1)
-        for located_package in self._located_packages:
-            if located_package.package not in fingerprints:
-                raise Exception('Missing fingerprint for %s' % (
-                    located_package.package))
-            old_sha1 = fingerprints[located_package.package]
-            new_sha1 = common.get_fingerprint(located_package.path)
-            if old_sha1 != new_sha1:
-                raise Exception('Fingerprint mismatch for %s: %s vs %s' % (
-                    located_package.package, old_sha1, new_sha1))
+        for filename in glob.iglob(os.path.join(self._packages_path, '*.ipk')):
+            fingerprint, _ = os.path.splitext(os.path.basename(filename))
+            if common.get_fingerprint(filename) != fingerprint:
+                raise Exception('Fingerprint mismatch for %s' % filename)
 
     def _check_package_fingerprints_unique(self):
         logging.info('checking that package fingerprints are unique')
@@ -339,12 +306,12 @@ class _BismarkRelease(object):
 
     def _check_upgrades_exist(self):
         logging.info('checking that upgraded packages exists')
-        located = set()
-        for located_package in self._located_packages:
-            located.add(located_package.package)
+        fingerprinted = set()
+        for fingerprinted_package in self._fingerprinted_packages:
+            fingerprinted.add(fingerprinted_package.package)
         for group_package in self._package_upgrades:
             package = group_package.package
-            if package not in located:
+            if package not in fingerprinted:
                 raise Exception(
                     'Cannot locate upgraded package %s' % (package,))
 

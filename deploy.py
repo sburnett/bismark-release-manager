@@ -43,15 +43,16 @@ def deploy(deployment_path, releases, experiments, node_groups):
 
 
 def deploy_packages(release, deployment_path):
-    for located_package in release.packages:
+    packages_path = release.packages_path
+    for package in release.packages:
         destination = os.path.join(deployment_path,
                                    'packages',
                                    release.name,
-                                   located_package.architecture)
+                                   package.architecture)
         common.makedirs(destination)
-        destination_path = os.path.join(destination,
-                                        located_package.filename)
-        shutil.copy2(located_package.path, destination_path)
+        destination_path = os.path.join(destination, package.filename)
+        source_filename = os.path.join(packages_path, '%s.ipk' % package.sha1)
+        shutil.copy2(source_filename, destination_path)
 
 
 def deploy_images(release, deployment_path):
@@ -66,14 +67,14 @@ def deploy_images(release, deployment_path):
 def deployment_package_paths(release, deployment_path):
     logging.info('locating package in deployed path')
     package_paths = dict()
-    for located_package in release.packages:
+    for package in release.packages:
         package_path = os.path.join(
             deployment_path,
             'packages',
             release.name,
-            located_package.architecture,
-            located_package.filename)
-        package_paths[located_package.package] = package_path
+            package.architecture,
+            package.filename)
+        package_paths[package.package] = package_path
     return package_paths
 
 
