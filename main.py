@@ -15,6 +15,10 @@ def create_groups_subcommands(subparsers):
         'name', type=str, nargs='?', action='store', help='name of the group to list')
     parser_list_group.set_defaults(handler=subcommands.list_group)
 
+    parser_list_all_groups = subparsers.add_parser(
+        'list-all', help='list all groups of nodes')
+    parser_list_all_groups.set_defaults(handler=subcommands.list_all_groups)
+
     parser_new_group = subparsers.add_parser(
         'new', help='create a new group of nodes')
     parser_new_group.add_argument(

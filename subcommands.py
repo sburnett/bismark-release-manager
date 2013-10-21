@@ -108,6 +108,13 @@ def list_group(releases_tree, args):
             print node
 
 
+def list_all_groups(releases_tree, args):
+    for group in sorted(releases_tree.groups):
+        print group
+        for node in sorted(releases_tree.nodes_in_group(group)):
+            print ' ', node
+
+
 def list_packages(releases_tree, args):
     for package in sorted(releases_tree.packages(args.release)):
         print ' '.join(package)
