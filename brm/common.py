@@ -4,6 +4,7 @@ import hashlib
 import logging
 import os
 
+
 def get_fingerprint(filename):
     with open(filename) as handle:
         contents = handle.read()
@@ -11,12 +12,14 @@ def get_fingerprint(filename):
     hasher.update(contents)
     return hasher.hexdigest()
 
+
 def md5sum(filename):
     with open(filename) as handle:
         contents = handle.read()
     hasher = hashlib.md5()
     hasher.update(contents)
     return hasher.hexdigest()
+
 
 def makedirs(path):
     try:
@@ -27,7 +30,9 @@ def makedirs(path):
         else:
             raise
 
+
 class NamedTupleSet(set):
+
     def __init__(self, tuple_type, filename):
         self._tuple_type = tuple_type
         self._filename = filename

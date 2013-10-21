@@ -14,18 +14,22 @@ ExperimentPackage = namedtuple('ExperimentPackage',
                                 'architecture'])
 GroupName = namedtuple('GroupName', ['group'])
 
+
 def new_experiment(root, display_name, description):
     experiment = _Experiment(root)
     experiment._display_name = display_name
     experiment._description = description
     return experiment
 
+
 def open_experiment(root):
     experiment = _Experiment(root)
     experiment._read_from_files()
     return experiment
 
+
 class _Experiment(object):
+
     def __init__(self, root):
         self._root = root
         self._name = os.path.basename(root)
@@ -34,8 +38,8 @@ class _Experiment(object):
         self._packages = common.NamedTupleSet(ExperimentPackage,
                                               self._get_filename('packages'))
         self._installed_by_default = common.NamedTupleSet(
-                GroupName,
-                self._get_filename('installed-by-default'))
+            GroupName,
+            self._get_filename('installed-by-default'))
         self._required = common.NamedTupleSet(GroupName,
                                               self._get_filename('required'))
         self._revoked = common.NamedTupleSet(GroupName,
@@ -125,7 +129,7 @@ class _Experiment(object):
         return revoked
 
     def is_revoked(self, group):
-        return GroupName(group) in self._revoked;
+        return GroupName(group) in self._revoked
 
     def set_revoked(self, group, revoked):
         if revoked:
@@ -167,7 +171,9 @@ class _Experiment(object):
     def _get_filename(self, name):
         return os.path.join(self._root, name)
 
+
 class Experiments(object):
+
     def __init__(self, root):
         self._root = root
         self._experiments = {}

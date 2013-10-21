@@ -4,7 +4,9 @@ import os
 
 import opkg
 
+
 class BuildTree(object):
+
     def __init__(self, build_root):
         logging.info('Checking whether "%s" is an OpenWrt build tree',
                      build_root)
@@ -44,8 +46,9 @@ class BuildTree(object):
 
     def builtin_packages(self):
         packages = set()
-        pattern = os.path.join(self._build_root, 'build_dir', 'target-*', 'root-*',
-                               'usr', 'lib', 'opkg', 'info', '*.control')
+        pattern = os.path.join(
+            self._build_root, 'build_dir', 'target-*', 'root-*',
+            'usr', 'lib', 'opkg', 'info', '*.control')
         logging.info('Getting builtin packages from "%s"', pattern)
         for filename in glob.iglob(pattern):
             package = opkg.parse_control_file(filename)

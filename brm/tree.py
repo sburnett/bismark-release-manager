@@ -10,7 +10,9 @@ import groups
 import openwrt
 import release
 
+
 class BismarkReleasesTree(object):
+
     def __init__(self, root):
         self._root = root
         common.makedirs(root)
@@ -24,8 +26,8 @@ class BismarkReleasesTree(object):
 
         openwrt_build = openwrt.BuildTree(build_root)
         bismark_release = release.new_bismark_release(
-                release_path,
-                openwrt_build)
+            release_path,
+            openwrt_build)
         bismark_release.save()
 
     @property
@@ -47,25 +49,25 @@ class BismarkReleasesTree(object):
     def builtin_packages(self, release_name):
         logging.info('Getting builtin packages for release %r', release_name)
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         return bismark_release.builtin_packages
 
     def extra_packages(self, release_name):
         logging.info('Getting extra packages for release %r', release_name)
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         return bismark_release.extra_packages
 
     def architectures(self, release_name):
         logging.info('Getting architectures for release %r', release_name)
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         return bismark_release.architectures
 
     def packages(self, release_name):
         logging.info('Getting packages for release %r', release_name)
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         return bismark_release.packages
 
     @property
@@ -79,7 +81,7 @@ class BismarkReleasesTree(object):
 
     def add_packages(self, release_name, filenames):
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         for filename in filenames:
             logging.info('Add package %r to release %r',
                          filename,
@@ -89,13 +91,13 @@ class BismarkReleasesTree(object):
 
     def add_extra_package(self, release_name, *rest):
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         bismark_release.add_extra_package(*rest)
         bismark_release.save()
 
     def remove_extra_package(self, release_name, *rest):
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         bismark_release.remove_extra_package(*rest)
         bismark_release.save()
 
@@ -150,7 +152,7 @@ class BismarkReleasesTree(object):
                      architecture,
                      release_name)
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
         for group_name in group_names:
             if group_name in node_groups:
@@ -176,7 +178,7 @@ class BismarkReleasesTree(object):
                      architecture,
                      release_name)
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
         if group_name in node_groups:
             logging.info('Getting upgrades for group %r', group_name)
@@ -193,9 +195,9 @@ class BismarkReleasesTree(object):
             logging.info('Getting upgrades for package %r', package)
             for node in nodes:
                 node_package = bismark_release.get_upgrade(
-                        node,
-                        package,
-                        architecture)
+                    node,
+                    package,
+                    architecture)
                 if node_package is None:
                     logging.info('No upgrades for package %r on node %r '
                                  'and architecture %r',
@@ -215,14 +217,15 @@ class BismarkReleasesTree(object):
         logging.info('Adding groups to experiment %s', experiment)
 
         bismark_release = release.open_bismark_release(
-                self._release_path(release_name))
+            self._release_path(release_name))
         package = release.Package(*rest)
         located_package = bismark_release.locate_package(package)
         if located_package is None:
             raise Exception('Cannot find package %r' % (package,))
 
         for group in groups:
-            self._experiments[experiment].add_package(group, release_name, *rest)
+            self._experiments[experiment].add_package(
+                group, release_name, *rest)
         self._experiments.write_to_files()
 
     def remove_from_experiment(self, experiment, groups, *rest):
@@ -256,16 +259,16 @@ class BismarkReleasesTree(object):
         if not os.path.isdir('.git'):
             subprocess.check_call(['git', 'init'])
         patterns = [
-                'experiments/*/*',
-                'groups/*',
-                'releases/*/architectures',
-                'releases/*/builtin-packages',
-                'releases/*/extra-packages',
-                'releases/*/fingerprinted-images',
-                'releases/*/fingerprinted-packages',
-                'releases/*/package-upgrades',
-                'releases/*/packages/*',
-                ]
+            'experiments/*/*',
+            'groups/*',
+            'releases/*/architectures',
+            'releases/*/builtin-packages',
+            'releases/*/extra-packages',
+            'releases/*/fingerprinted-images',
+            'releases/*/fingerprinted-packages',
+            'releases/*/package-upgrades',
+            'releases/*/packages/*',
+        ]
         for pattern in patterns:
             for filename in glob.iglob(pattern):
                 subprocess.check_call(['git', 'add', filename])
@@ -306,8 +309,8 @@ class BismarkReleasesTree(object):
                                 and package.architecture != 'all'):
                             continue
                         raise Exception(
-                                'Experiment %r contains builtin package %r' % (
-                                    name, builtin_package.name))
+                            'Experiment %r contains builtin package %r' % (
+                                name, builtin_package.name))
 
             logging.info('Checking if experiments include extra packages')
             for extra_package in bismark_release.extra_packages:
@@ -322,8 +325,8 @@ class BismarkReleasesTree(object):
                                 and package.architecture != 'all'):
                             continue
                         raise Exception(
-                                'Experiment %r contains "extra" package %r' % (
-                                    name, extra_package.name))
+                            'Experiment %r contains "extra" package %r' % (
+                                name, extra_package.name))
 
         self._experiments.check_constraints()
 

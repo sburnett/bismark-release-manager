@@ -9,24 +9,34 @@ import opkg
 
 Architecture = namedtuple('Architecture', ['name'])
 PackageDirectory = namedtuple('PackageDirectory', ['name'])
-FingerprintedImage = namedtuple('FingerprintedImage', ['name', 'architecture', 'sha1'])
+FingerprintedImage = namedtuple(
+    'FingerprintedImage', ['name', 'architecture', 'sha1'])
 LocatedImage = namedtuple('LocatedImage', ['name', 'architecture', 'path'])
 
 _Package = namedtuple('Package', ['name', 'version', 'architecture'])
+
+
 class Package(_Package):
+
     def located_package(self, filename):
         return LocatedPackage(self.name, self.version, self.architecture, filename)
 
 _FingerprintedPackage = namedtuple('FingerprintedPackage',
                                    ['name', 'version', 'architecture', 'sha1'])
+
+
 class FingerprintedPackage(_FingerprintedPackage):
+
     @property
     def package(self):
         return Package(self.name, self.version, self.architecture)
 
 _LocatedPackage = namedtuple('LocatedPackage',
                              ['name', 'version', 'architecture', 'path'])
+
+
 class LocatedPackage(_LocatedPackage):
+
     @property
     def package(self):
         return Package(self.name, self.version, self.architecture)
@@ -37,10 +47,14 @@ class LocatedPackage(_LocatedPackage):
 
 _GroupPackage = namedtuple('GroupPackage',
                            ['group', 'name', 'version', 'architecture'])
+
+
 class GroupPackage(_GroupPackage):
+
     @property
     def package(self):
         return Package(self.name, self.version, self.architecture)
+
 
 def new_bismark_release(path, build):
     logging.info('Creating new release in %r', path)
@@ -52,7 +66,8 @@ def new_bismark_release(path, build):
         name = os.path.basename(path)
         release._located_images.add(LocatedImage(name, architecture, path))
         sha1 = common.get_fingerprint(path)
-        release._fingerprinted_images.add(FingerprintedImage(name, architecture, sha1))
+        release._fingerprinted_images.add(
+            FingerprintedImage(name, architecture, sha1))
     for dirname in build.package_directories():
         for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
             release.add_package(filename)
@@ -60,41 +75,44 @@ def new_bismark_release(path, build):
     release._fingerprint_packages()
     return release
 
+
 def open_bismark_release(path):
     if not os.path.isdir(path):
         raise Exception('Release does not exist: %s' % path)
     return _BismarkRelease(path)
 
+
 class _BismarkRelease(object):
+
     def __init__(self, path):
         self._path = path
         self._name = os.path.basename(path)
         self._packages_path = os.path.join(self._path, 'packages')
 
         self._architectures = common.NamedTupleSet(
-                Architecture,
-                self._full_path('architectures'))
+            Architecture,
+            self._full_path('architectures'))
         self._builtin_packages = common.NamedTupleSet(
-                Package,
-                self._full_path('builtin-packages'))
+            Package,
+            self._full_path('builtin-packages'))
         self._extra_packages = common.NamedTupleSet(
-                Package,
-                self._full_path('extra-packages'))
+            Package,
+            self._full_path('extra-packages'))
         self._fingerprinted_packages = common.NamedTupleSet(
-                FingerprintedPackage,
-                self._full_path('fingerprinted-packages'))
+            FingerprintedPackage,
+            self._full_path('fingerprinted-packages'))
         self._located_packages = common.NamedTupleSet(
-                LocatedPackage,
-                self._full_path('located-packages'))
+            LocatedPackage,
+            self._full_path('located-packages'))
         self._fingerprinted_images = common.NamedTupleSet(
-                FingerprintedImage,
-                self._full_path('fingerprinted-images'))
+            FingerprintedImage,
+            self._full_path('fingerprinted-images'))
         self._located_images = common.NamedTupleSet(
-                LocatedImage,
-                self._full_path('located-images'))
+            LocatedImage,
+            self._full_path('located-images'))
         self._package_upgrades = common.NamedTupleSet(
-                GroupPackage,
-                self._full_path('package-upgrades'))
+            GroupPackage,
+            self._full_path('package-upgrades'))
 
     @property
     def name(self):
@@ -289,7 +307,7 @@ class _BismarkRelease(object):
         fingerprints = {}
         for fingerprinted_package in self._fingerprinted_packages:
             fingerprints[fingerprinted_package.package] = (
-                    fingerprinted_package.sha1)
+                fingerprinted_package.sha1)
         for located_package in self._located_packages:
             if located_package.package not in fingerprints:
                 raise Exception('Missing fingerprint for %s' % (
@@ -306,7 +324,8 @@ class _BismarkRelease(object):
         for fingerprinted_package in self._fingerprinted_packages:
             package = fingerprinted_package.package
             if package in packages:
-                raise Exception('Multiple fingerprints for package %s' % package)
+                raise Exception(
+                    'Multiple fingerprints for package %s' % package)
             packages.add(package)
 
     def _check_upgrades_exist(self):
@@ -317,7 +336,8 @@ class _BismarkRelease(object):
         for group_package in self._package_upgrades:
             package = group_package.package
             if package not in located:
-                raise Exception('Cannot locate upgraded package %s' % (package,))
+                raise Exception(
+                    'Cannot locate upgraded package %s' % (package,))
 
     def _check_upgrades_valid(self):
         logging.info('checking that upgrades only upgrade builting packages')
@@ -327,15 +347,18 @@ class _BismarkRelease(object):
         for group_package in self._package_upgrades:
             key = (group_package.name, group_package.architecture)
             if key not in package_keys:
-                raise Exception('upgrade %s is not for a builtin package' % group_package)
+                raise Exception(
+                    'upgrade %s is not for a builtin package' % group_package)
 
     def _check_upgrades_unique(self):
         logging.info('checking that upgraded packages are unique per node')
         all_upgrades = set()
         for group_package in self._package_upgrades:
-            key = (group_package.group, group_package.name, group_package.architecture)
+            key = (group_package.group, group_package.name,
+                   group_package.architecture)
             if key in all_upgrades:
-                raise Exception('multiple upgrades to package %s for the same group %s' % (group_package.name, group_package.group))
+                raise Exception('multiple upgrades to package %s for the same group %s' %
+                                (group_package.name, group_package.group))
 
     def _check_upgrades_newer(self):
         # TODO: Parse and compare versions

@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 
+
 class NodeGroups(object):
     _reserved_groups = set(['default'])
 

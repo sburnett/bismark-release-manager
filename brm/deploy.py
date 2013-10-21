@@ -12,10 +12,14 @@ import release as bismark_release
 
 _NodePackage = namedtuple('NodePackage',
                           ['node', 'name', 'version', 'architecture'])
+
+
 class NodePackage(_NodePackage):
+
     @property
     def package(self):
         return bismark_release.Package(self.name, self.version, self.architecture)
+
 
 def deploy(deployment_path, releases, experiments, node_groups):
     common.makedirs(deployment_path)
@@ -37,6 +41,7 @@ def deploy(deployment_path, releases, experiments, node_groups):
     deploy_packages_gz(deployment_path)
     deploy_upgradable_sentinels(deployment_path)
 
+
 def deploy_packages(release, deployment_path):
     for located_package in release.packages:
         destination = os.path.join(deployment_path,
@@ -48,6 +53,7 @@ def deploy_packages(release, deployment_path):
                                         located_package.filename)
         shutil.copy2(located_package.path, destination_path)
 
+
 def deploy_images(release, deployment_path):
     for located_image in release.images:
         destination_dir = os.path.join(deployment_path,
@@ -56,18 +62,20 @@ def deploy_images(release, deployment_path):
         common.makedirs(destination_dir)
         shutil.copy2(located_image.path, destination_dir)
 
+
 def deployment_package_paths(release, deployment_path):
     logging.info('locating package in deployed path')
     package_paths = dict()
     for located_package in release.packages:
         package_path = os.path.join(
-                deployment_path,
-                'packages',
-                release.name,
-                located_package.architecture,
-                located_package.filename)
+            deployment_path,
+            'packages',
+            release.name,
+            located_package.architecture,
+            located_package.filename)
         package_paths[located_package.package] = package_path
     return package_paths
+
 
 def deploy_builtin_packages(release, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
@@ -84,6 +92,7 @@ def deploy_builtin_packages(release, deployment_path):
             relative_source = os.path.relpath(source, link_dir)
             os.symlink(relative_source, link_name)
 
+
 def deploy_extra_packages(release, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
     for package in release.extra_packages:
@@ -98,6 +107,7 @@ def deploy_extra_packages(release, deployment_path):
             link_name = os.path.join(link_dir, os.path.basename(source))
             relative_source = os.path.relpath(source, link_dir)
             os.symlink(relative_source, link_name)
+
 
 def resolve_groups_to_nodes(node_groups, group_packages):
     logging.info('resolving groups to nodes')
@@ -120,6 +130,7 @@ def resolve_groups_to_nodes(node_groups, group_packages):
         packages_per_node.add(key)
 
     return node_packages
+
 
 def normalize_default_packages(node_packages):
     logging.info('normalizing packages')
@@ -147,6 +158,7 @@ def normalize_default_packages(node_packages):
             normalized_packages.add(node_package)
     return normalized_packages
 
+
 def symlink_packages(release, packages, subdirectory, deployment_path):
     package_paths = deployment_package_paths(release, deployment_path)
     for package in packages:
@@ -163,15 +175,17 @@ def symlink_packages(release, packages, subdirectory, deployment_path):
             relative_source = os.path.relpath(source, link_dir)
             os.symlink(relative_source, link_name)
 
+
 def deploy_upgrades(release, node_groups, deployment_path):
     resolved_upgrades = resolve_groups_to_nodes(
-            node_groups,
-            release.package_upgrades)
+        node_groups,
+        release.package_upgrades)
     upgraded_packages = normalize_default_packages(resolved_upgrades)
     symlink_packages(release,
                      upgraded_packages,
                      'updates-device',
                      deployment_path)
+
 
 def deploy_experiment_packages(release,
                                experiments,
@@ -191,6 +205,7 @@ def deploy_experiment_packages(release,
                      'experiments-device',
                      deployment_path)
 
+
 def normalize_default_experiments(node_dicts):
     logging.info('normalizing experiments')
     if 'default' not in node_dicts:
@@ -205,11 +220,13 @@ def normalize_default_experiments(node_dicts):
             value_dict[key] = default_value
     return node_dicts
 
+
 def bool_to_string(b):
     if b:
         return '1'
     else:
         return '0'
+
 
 def deploy_experiment_configurations(release,
                                      experiments,
@@ -228,7 +245,8 @@ def deploy_experiment_configurations(release,
             print >>s, "    option 'required' '%s'" % required
             revoked = bool_to_string(experiment.is_revoked(group))
             print >>s, "    option 'revoked' '%s'" % revoked
-            installed = bool_to_string(experiment.is_installed_by_default(group))
+            installed = bool_to_string(
+                experiment.is_installed_by_default(group))
             print >>s, "    option 'installed' '%s'" % installed
             group_configuration_headers[group][name] = s.getvalue()
 
@@ -240,14 +258,15 @@ def deploy_experiment_configurations(release,
                     raise Exception('conflicting experiment defintions')
                 node_configuration_headers[node][experiment] = header
     normalized_headers = normalize_default_experiments(
-            node_configuration_headers)
+        node_configuration_headers)
 
     group_experiment_packages = defaultdict(lambda: defaultdict(set))
     for name, experiment in experiments.iteritems():
         for group_package in experiment.packages:
             if group_package.release != release.name:
                 continue
-            group_experiment_packages[group_package.group][name].add(group_package)
+            group_experiment_packages[
+                group_package.group][name].add(group_package)
 
     bodies = defaultdict(dict)
     for group, experiment_packages in group_experiment_packages.items():
@@ -255,11 +274,12 @@ def deploy_experiment_configurations(release,
             for experiment, packages in experiment_packages.items():
                 for package in packages:
                     architectures = release.normalize_architecture(
-                            package.architecture)
+                        package.architecture)
                     for architecture in architectures:
                         key = architecture, experiment, package.name
                         if key in bodies[node]:
-                            raise Exception('conflicting packages for experiment')
+                            raise Exception(
+                                'conflicting packages for experiment')
                         bodies[node][key] = package
     normalized_bodies = normalize_default_experiments(bodies)
 
@@ -268,9 +288,9 @@ def deploy_experiment_configurations(release,
         for architecture, experiment, name in packages:
             if experiment not in configurations[architecture, node]:
                 configurations[architecture, node][experiment] = (
-                        normalized_headers[node][experiment])
+                    normalized_headers[node][experiment])
             configurations[architecture, node][experiment] += (
-                    "    list 'package' '%s'\n" % name)
+                "    list 'package' '%s'\n" % name)
 
     for (architecture, node), experiments in configurations.items():
         filename = os.path.join(deployment_path,
@@ -285,12 +305,13 @@ def deploy_experiment_configurations(release,
                 handle.write(configuration)
                 print >>handle, ''
 
+
 def deploy_packages_gz(deployment_path):
     patterns = [
-            '*/*/experiments-device/*',
-            '*/*/packages',
-            '*/*/updates-device/*',
-            ]
+        '*/*/experiments-device/*',
+        '*/*/packages',
+        '*/*/updates-device/*',
+    ]
     for pattern in patterns:
         full_pattern = os.path.join(deployment_path, pattern)
         for dirname in glob.iglob(full_pattern):
@@ -303,11 +324,12 @@ def deploy_packages_gz(deployment_path):
             with gzip.open(index_filename, 'wb') as handle:
                 handle.write(index_contents)
 
+
 def deploy_upgradable_sentinels(deployment_path):
     patterns = [
-            '*/*/updates-device/*',
-            '*/*/experiments-device/*',
-            ]
+        '*/*/updates-device/*',
+        '*/*/experiments-device/*',
+    ]
     for pattern in patterns:
         full_pattern = os.path.join(deployment_path, pattern)
         for dirname in glob.iglob(full_pattern):

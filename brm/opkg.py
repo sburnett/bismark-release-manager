@@ -6,16 +6,19 @@ import tarfile
 import common
 import release
 
+
 def parse_ipk(filename):
     logging.info('Parsing ipk %r', filename)
     contents = read_control_file_from_ipk(filename)
     return parse_package_from_control_contents(contents)
+
 
 def parse_control_file(filename):
     logging.info('Parsing control file %r', filename)
     with open(filename) as handle:
         contents = handle.read()
     return parse_package_from_control_contents(contents)
+
 
 def generate_package_index(filename):
     logging.info('Generating package index for %r', filename)
@@ -33,6 +36,7 @@ def generate_package_index(filename):
                   'Description:' % (basename, file_size, md5sum)
     return re.sub(pattern, replacement, contents, count=1, flags=re.MULTILINE)
 
+
 def read_control_file_from_ipk(filename):
     logging.info('Parsing ipk %r', filename)
     with tarfile.open(filename, 'r:gz') as tar_handle:
@@ -40,6 +44,7 @@ def read_control_file_from_ipk(filename):
         with tarfile.open(fileobj=control_tar_file) as control_tar_handle:
             control_file = control_tar_handle.extractfile('./control')
             return control_file.read()
+
 
 def parse_package_from_control_contents(contents):
     logging.info('Parsing an ipk control file')
@@ -61,6 +66,7 @@ def parse_package_from_control_contents(contents):
         return None
     return release.Package(name=name, version=version, architecture=architecture)
 
+
 def fingerprint_package(filename):
     logging.info('Fingerprinting package %r', filename)
     package = parse_ipk(filename)
@@ -68,10 +74,11 @@ def fingerprint_package(filename):
         return None
     sha1 = common.get_fingerprint(filename)
     return release.FingerprintedPackage(
-            name=package.name,
-            version=package.version,
-            architecture=package.architecture,
-            sha1=sha1)
+        name=package.name,
+        version=package.version,
+        architecture=package.architecture,
+        sha1=sha1)
+
 
 def locate_package(filename):
     logging.info('Locating package %r', filename)
@@ -79,7 +86,7 @@ def locate_package(filename):
     if package is None:
         return None
     return release.LocatedPackage(
-            name=package.name,
-            version=package.version,
-            architecture=package.architecture,
-            path=filename)
+        name=package.name,
+        version=package.version,
+        architecture=package.architecture,
+        path=filename)
