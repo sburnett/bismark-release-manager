@@ -51,6 +51,11 @@ def list_builtin_packages(releases_tree, args):
         print ' '.join(package)
 
 def list_experiment(releases_tree, args):
+    if args.experiment is None:
+        for name in sorted(releases_tree.experiments):
+            print name
+        return
+
     experiment = releases_tree.experiments[args.experiment]
     print 'Name:', experiment.name
     print 'Display name:', experiment.display_name
@@ -72,10 +77,6 @@ def list_experiment_packages(releases_tree, args):
     for package in sorted(releases_tree.experiment_packages(args.experiment)):
         print ' '.join(package)
 
-def list_experiments(releases_tree, args):
-    for name in sorted(releases_tree.experiments):
-        print name
-
 def list_extra_packages(releases_tree, args):
     for package in sorted(releases_tree.extra_packages(args.release)):
         if (args.architecture is not None and
@@ -84,12 +85,12 @@ def list_extra_packages(releases_tree, args):
         print ' '.join(package)
 
 def list_group(releases_tree, args):
-    for node in sorted(releases_tree.nodes_in_group(args.name)):
-        print node
-
-def list_groups(releases_tree, args):
-    for group in releases_tree.groups:
-        print group
+    if args.name is None:
+        for group in releases_tree.groups:
+            print group
+    else:
+        for node in sorted(releases_tree.nodes_in_group(args.name)):
+            print node
 
 def list_packages(releases_tree, args):
     for package in sorted(releases_tree.packages(args.release)):
