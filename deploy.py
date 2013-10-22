@@ -38,6 +38,8 @@ def deploy(deployment_path, releases, experiments, node_groups):
                                           experiments,
                                           node_groups,
                                           deployment_path)
+    _make_dummy_directories(deployment_path)
+    _deploy_dummy_experiment_configurations(deployment_path)
     _deploy_packages_gz(deployment_path)
     _deploy_upgradable_sentinels(deployment_path)
 
@@ -334,10 +336,37 @@ def _deploy_experiment_configurations(release,
                 print >>handle, ''
 
 
+def _make_dummy_directories(deployment_path):
+    patterns = [
+        '*/*',
+    ]
+    for pattern in patterns:
+        full_pattern = os.path.join(deployment_path, pattern)
+        for dirname in glob.iglob(full_pattern):
+            if os.path.dirname(dirname) == 'packages':
+                continue
+            common.makedirs(os.path.join(dirname, 'experiments'))
+            common.makedirs(os.path.join(dirname, 'updates'))
+
+
+def _deploy_dummy_experiment_configurations(deployment_path):
+    patterns = [
+        '*/*/experiments',
+    ]
+    for pattern in patterns:
+        full_pattern = os.path.join(deployment_path, pattern)
+        for dirname in glob.iglob(full_pattern):
+            experiments_filename = os.path.join(dirname, 'Experiments')
+            with open(experiments_filename, 'w') as handle:
+                print >>handle
+
+
 def _deploy_packages_gz(deployment_path):
     patterns = [
+        '*/*/experiments',
         '*/*/experiments-device/*',
         '*/*/packages',
+        '*/*/updates',
         '*/*/updates-device/*',
     ]
     for pattern in patterns:
