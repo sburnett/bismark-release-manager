@@ -379,8 +379,9 @@ def _deploy_packages_gz(deployment_path):
                 package_indices.append(package_index)
             index_contents = '\n'.join(package_indices)
             index_filename = os.path.join(dirname, 'Packages.gz')
-            with gzip.open(index_filename, 'wb') as handle:
-                handle.write(index_contents)
+            handle = gzip.open(index_filename, 'wb')
+            handle.write(index_contents)
+            handle.close()
 
 
 def _deploy_upgradable_sentinels(deployment_path):
