@@ -29,12 +29,12 @@ def generate_package_index(filename):
     file_size = stat.st_size
     md5sum = common.md5sum(filename)
 
-    pattern = r'^Description:'
+    regex = re.compile(r'^Description:', re.MULTILINE)
     replacement = 'Filename: %s\n' \
                   'Size: %d\n' \
                   'MD5Sum: %s\n' \
                   'Description:' % (basename, file_size, md5sum)
-    return re.sub(pattern, replacement, contents, count=1, flags=re.MULTILINE)
+    return regex.sub(replacement, contents, count=1)
 
 
 def read_control_file_from_ipk(filename):
