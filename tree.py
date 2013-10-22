@@ -262,7 +262,8 @@ class BismarkReleasesTree(object):
             release_path = self._release_path(release_name)
             bismark_release = release.open_bismark_release(release_path)
             releases.append(bismark_release)
-        deploy.deploy(destination,
+        deploy.deploy(self._root,
+                      destination,
                       releases,
                       self._experiments,
                       node_groups)

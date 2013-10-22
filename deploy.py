@@ -21,7 +21,7 @@ class NodePackage(_NodePackage):
         return bismark_release.Package(self.name, self.version, self.architecture)
 
 
-def deploy(deployment_path, releases, experiments, node_groups):
+def deploy(releases_root, deployment_path, releases, experiments, node_groups):
     common.makedirs(deployment_path)
 
     for release in releases:
@@ -42,6 +42,7 @@ def deploy(deployment_path, releases, experiments, node_groups):
     _deploy_dummy_experiment_configurations(deployment_path)
     _deploy_packages_gz(deployment_path)
     _deploy_upgradable_sentinels(deployment_path)
+    _deploy_static(releases_root, deployment_path)
 
 
 def _deploy_packages(release, deployment_path):
@@ -394,3 +395,11 @@ def _deploy_upgradable_sentinels(deployment_path):
                 continue
             with open(os.path.join(dirname, 'Upgradable'), 'w'):
                 pass
+
+
+def _deploy_static(releases_root, deployment_path):
+    static_pattern = os.path.join(releases_root, 'static', '*')
+    for filename in glob.iglob(static_pattern):
+        if os.path.isdir(filename):
+            continue
+        shutil.copy2(filename, deployment_path)
