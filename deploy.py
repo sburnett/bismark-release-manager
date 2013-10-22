@@ -25,24 +25,24 @@ def deploy(deployment_path, releases, experiments, node_groups):
     common.makedirs(deployment_path)
 
     for release in releases:
-        deploy_packages(release, deployment_path)
-        deploy_images(release, deployment_path)
-        deploy_builtin_packages(release, deployment_path)
-        deploy_extra_packages(release, deployment_path)
-        deploy_upgrades(release, node_groups, deployment_path)
-        deploy_experiment_packages(release,
-                                   experiments,
-                                   node_groups,
-                                   deployment_path)
-        deploy_experiment_configurations(release,
-                                         experiments,
-                                         node_groups,
-                                         deployment_path)
-    deploy_packages_gz(deployment_path)
-    deploy_upgradable_sentinels(deployment_path)
+        _deploy_packages(release, deployment_path)
+        _deploy_images(release, deployment_path)
+        _deploy_builtin_packages(release, deployment_path)
+        _deploy_extra_packages(release, deployment_path)
+        _deploy_upgrades(release, node_groups, deployment_path)
+        _deploy_experiment_packages(release,
+                                    experiments,
+                                    node_groups,
+                                    deployment_path)
+        _deploy_experiment_configurations(release,
+                                          experiments,
+                                          node_groups,
+                                          deployment_path)
+    _deploy_packages_gz(deployment_path)
+    _deploy_upgradable_sentinels(deployment_path)
 
 
-def deploy_packages(release, deployment_path):
+def _deploy_packages(release, deployment_path):
     packages_path = release.packages_path
     for package in release.packages:
         destination = os.path.join(deployment_path,
@@ -55,7 +55,7 @@ def deploy_packages(release, deployment_path):
         shutil.copy2(source_filename, destination_path)
 
 
-def deploy_images(release, deployment_path):
+def _deploy_images(release, deployment_path):
     for located_image in release.images:
         destination_dir = os.path.join(deployment_path,
                                        release.name,
@@ -64,7 +64,7 @@ def deploy_images(release, deployment_path):
         shutil.copy2(located_image.path, destination_dir)
 
 
-def deployment_package_paths(release, deployment_path):
+def _deployment_package_paths(release, deployment_path):
     logging.info('locating package in deployed path')
     package_paths = dict()
     for package in release.packages:
@@ -78,8 +78,8 @@ def deployment_package_paths(release, deployment_path):
     return package_paths
 
 
-def deploy_builtin_packages(release, deployment_path):
-    package_paths = deployment_package_paths(release, deployment_path)
+def _deploy_builtin_packages(release, deployment_path):
+    package_paths = _deployment_package_paths(release, deployment_path)
     for package in release.builtin_packages:
         source = package_paths[package]
         architectures = release.normalize_architecture(package.architecture)
@@ -94,8 +94,8 @@ def deploy_builtin_packages(release, deployment_path):
             os.symlink(relative_source, link_name)
 
 
-def deploy_extra_packages(release, deployment_path):
-    package_paths = deployment_package_paths(release, deployment_path)
+def _deploy_extra_packages(release, deployment_path):
+    package_paths = _deployment_package_paths(release, deployment_path)
     for package in release.extra_packages:
         source = package_paths[package]
         architectures = release.normalize_architecture(package.architecture)
@@ -110,7 +110,7 @@ def deploy_extra_packages(release, deployment_path):
             os.symlink(relative_source, link_name)
 
 
-def resolve_groups_to_nodes(node_groups, group_packages):
+def _resolve_groups_to_nodes(node_groups, group_packages):
     logging.info('resolving groups to nodes')
     node_packages = set()
     for group_package in group_packages:
@@ -133,7 +133,7 @@ def resolve_groups_to_nodes(node_groups, group_packages):
     return node_packages
 
 
-def normalize_default_packages(node_packages, nodes):
+def _normalize_default_packages(node_packages, nodes):
     logging.info('normalizing packages')
     packages = defaultdict(dict)
     for node_package in node_packages:
@@ -157,8 +157,8 @@ def normalize_default_packages(node_packages, nodes):
     return normalized_packages
 
 
-def symlink_packages(release, packages, subdirectory, deployment_path):
-    package_paths = deployment_package_paths(release, deployment_path)
+def _symlink_packages(release, packages, subdirectory, deployment_path):
+    package_paths = _deployment_package_paths(release, deployment_path)
     for package in packages:
         source = package_paths[package.package]
         architectures = release.normalize_architecture(package.architecture)
@@ -174,24 +174,24 @@ def symlink_packages(release, packages, subdirectory, deployment_path):
             os.symlink(relative_source, link_name)
 
 
-def deploy_upgrades(release, node_groups, deployment_path):
-    resolved_upgrades = resolve_groups_to_nodes(
+def _deploy_upgrades(release, node_groups, deployment_path):
+    resolved_upgrades = _resolve_groups_to_nodes(
         node_groups,
         release.package_upgrades)
     nodes = set()
     for node_package in resolved_upgrades:
         nodes.add(node_package.node)
-    upgraded_packages = normalize_default_packages(resolved_upgrades, nodes)
-    symlink_packages(release,
-                     upgraded_packages,
-                     'updates-device',
-                     deployment_path)
+    upgraded_packages = _normalize_default_packages(resolved_upgrades, nodes)
+    _symlink_packages(release,
+                      upgraded_packages,
+                      'updates-device',
+                      deployment_path)
 
 
-def deploy_experiment_packages(release,
-                               experiments,
-                               node_groups,
-                               deployment_path):
+def _deploy_experiment_packages(release,
+                                experiments,
+                                node_groups,
+                                deployment_path):
 
     all_group_packages = set()
     for name, experiment in experiments.iteritems():
@@ -199,21 +199,21 @@ def deploy_experiment_packages(release,
             if group_package.release != release.name:
                 continue
             all_group_packages.add(group_package)
-    node_packages = resolve_groups_to_nodes(node_groups, all_group_packages)
+    node_packages = _resolve_groups_to_nodes(node_groups, all_group_packages)
     nodes = set()
     for node_package in node_packages:
         nodes.add(node_package.node)
     for _, experiment in experiments.iteritems():
         for group in experiment.header_groups:
             nodes.update(node_groups.resolve_to_nodes(group))
-    normalized_packages = normalize_default_packages(node_packages, nodes)
-    symlink_packages(release,
-                     normalized_packages,
-                     'experiments-device',
-                     deployment_path)
+    normalized_packages = _normalize_default_packages(node_packages, nodes)
+    _symlink_packages(release,
+                      normalized_packages,
+                      'experiments-device',
+                      deployment_path)
 
 
-def normalize_default_experiments(node_dicts):
+def _normalize_default_experiments(node_dicts):
     logging.info('normalizing experiments')
     if 'default' not in node_dicts:
         return node_dicts
@@ -228,14 +228,14 @@ def normalize_default_experiments(node_dicts):
     return node_dicts
 
 
-def bool_to_string(b):
+def _bool_to_string(b):
     if b:
         return '1'
     else:
         return '0'
 
 
-def normalized_configuration_headers(experiments, node_groups):
+def _normalized_configuration_headers(experiments, node_groups):
     group_configuration_headers = defaultdict(dict)
     for name, experiment in experiments.iteritems():
         for group in experiment.header_groups:
@@ -245,11 +245,11 @@ def normalized_configuration_headers(experiments, node_groups):
             print >>s, "    option 'description' '%s'" % experiment.description
             for conflict in experiment.conflicts:
                 print >>s, "    list 'conflicts' '%s'" % conflict
-            required = bool_to_string(experiment.is_required(group))
+            required = _bool_to_string(experiment.is_required(group))
             print >>s, "    option 'required' '%s'" % required
-            revoked = bool_to_string(experiment.is_revoked(group))
+            revoked = _bool_to_string(experiment.is_revoked(group))
             print >>s, "    option 'revoked' '%s'" % revoked
-            installed = bool_to_string(
+            installed = _bool_to_string(
                 experiment.is_installed_by_default(group))
             print >>s, "    option 'installed' '%s'" % installed
             group_configuration_headers[group][name] = s.getvalue()
@@ -261,10 +261,10 @@ def normalized_configuration_headers(experiments, node_groups):
                 if experiment in node_configuration_headers[node]:
                     raise Exception('conflicting experiment defintions')
                 node_configuration_headers[node][experiment] = header
-    return normalize_default_experiments(node_configuration_headers)
+    return _normalize_default_experiments(node_configuration_headers)
 
 
-def normalized_configuration_bodies(release, experiments, node_groups):
+def _normalized_configuration_bodies(release, experiments, node_groups):
     group_experiment_packages = defaultdict(lambda: defaultdict(set))
     for name, experiment in experiments.iteritems():
         for group_package in experiment.packages:
@@ -286,16 +286,16 @@ def normalized_configuration_bodies(release, experiments, node_groups):
                             raise Exception(
                                 'conflicting packages for experiment')
                         bodies[node][key] = package
-    return normalize_default_experiments(bodies)
+    return _normalize_default_experiments(bodies)
 
 
-def deploy_experiment_configurations(release,
-                                     experiments,
-                                     node_groups,
-                                     deployment_path):
-    normalized_headers = normalized_configuration_headers(
+def _deploy_experiment_configurations(release,
+                                      experiments,
+                                      node_groups,
+                                      deployment_path):
+    normalized_headers = _normalized_configuration_headers(
         experiments, node_groups)
-    normalized_bodies = normalized_configuration_bodies(
+    normalized_bodies = _normalized_configuration_bodies(
         release, experiments, node_groups)
 
     all_nodes = set()
@@ -334,7 +334,7 @@ def deploy_experiment_configurations(release,
                 print >>handle, ''
 
 
-def deploy_packages_gz(deployment_path):
+def _deploy_packages_gz(deployment_path):
     patterns = [
         '*/*/experiments-device/*',
         '*/*/packages',
@@ -353,7 +353,7 @@ def deploy_packages_gz(deployment_path):
                 handle.write(index_contents)
 
 
-def deploy_upgradable_sentinels(deployment_path):
+def _deploy_upgradable_sentinels(deployment_path):
     patterns = [
         '*/*/updates-device/*',
         '*/*/experiments-device/*',
