@@ -301,6 +301,10 @@ def main():
         'commit', help='commit current release configuration to git')
     parser_commit.set_defaults(handler=subcommands.commit)
 
+    parser_diff = subparsers.add_parser(
+        'diff', help='show changes ready to be committed to git')
+    parser_diff.set_defaults(handler=subcommands.diff)
+
     parser_deploy = subparsers.add_parser('deploy', help='deploy all releases')
     parser_deploy.add_argument(
         'destination', type=str, action='store', help='deploy to this directory')

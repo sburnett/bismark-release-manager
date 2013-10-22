@@ -29,6 +29,10 @@ def commit(releases_tree, args):
     releases_tree.commit()
 
 
+def diff(releases_tree, args):
+    releases_tree.diff()
+
+
 def delete_group(releases_tree, args):
     releases_tree.delete_group(args.name)
 

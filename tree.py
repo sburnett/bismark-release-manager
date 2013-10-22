@@ -232,7 +232,7 @@ class BismarkReleasesTree(object):
                                                                    installed)
         self._experiments.write_to_files()
 
-    def commit(self):
+    def _stage_changes(self):
         os.chdir(self._root)
         if not os.path.isdir('.git'):
             subprocess.check_call(['git', 'init'])
@@ -252,8 +252,15 @@ class BismarkReleasesTree(object):
         for pattern in patterns:
             for filename in glob.iglob(pattern):
                 subprocess.check_call(['git', 'add', filename])
+
+    def commit(self):
+        self._stage_changes()
         if subprocess.call(['git', 'diff', '--cached', '--exit-code']) != 0:
             subprocess.check_call(['git', 'commit', '-a'])
+
+    def diff(self):
+        self._stage_changes()
+        subprocess.call(['git', 'diff', '--cached'])
 
     def deploy(self, destination):
         self.check_constraints()
