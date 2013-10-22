@@ -247,6 +247,7 @@ class BismarkReleasesTree(object):
             'releases/*/images/*',
             'releases/*/package-upgrades',
             'releases/*/packages/*',
+            'static/*',
         ]
         for pattern in patterns:
             for filename in glob.iglob(pattern):
