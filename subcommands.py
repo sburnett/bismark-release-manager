@@ -54,6 +54,17 @@ def list_architectures(releases_tree, args):
         print ' '.join(architecture)
 
 
+def list_all_experiments(releases_tree, args):
+    for name in sorted(releases_tree.experiments):
+        experiment = releases_tree.experiments[name]
+        print_experiment_metadata(releases_tree, experiment)
+
+        print 'Packages:'
+        for package in sorted(experiment.packages):
+            print ' ', ' '.join(package)
+        print
+
+
 def list_builtin_packages(releases_tree, args):
     for package in sorted(releases_tree.builtin_packages(args.release)):
         if (args.architecture is not None and
@@ -62,13 +73,7 @@ def list_builtin_packages(releases_tree, args):
         print ' '.join(package)
 
 
-def list_experiment(releases_tree, args):
-    if args.experiment is None:
-        for name in sorted(releases_tree.experiments):
-            print name
-        return
-
-    experiment = releases_tree.experiments[args.experiment]
+def print_experiment_metadata(releases_tree, experiment):
     print 'Name:', experiment.name
     print 'Display name:', experiment.display_name
     print 'Description:', experiment.description
@@ -78,12 +83,21 @@ def list_experiment(releases_tree, args):
     print 'Explicit conflicts:', ', '.join(experiment.conflicts)
     implicit_conflicts = set()
     for name, experiment in releases_tree.experiments.iteritems():
-        if name == args.experiment:
+        if name == experiment.name:
             continue
-        if args.experiment not in experiment.conflicts:
+        if experiment.name not in experiment.conflicts:
             continue
         implicit_conflicts.add(name)
     print 'Implicit conflicts:', ', '.join(implicit_conflicts)
+
+def list_experiment(releases_tree, args):
+    if args.experiment is None:
+        for name in sorted(releases_tree.experiments):
+            print name
+        return
+
+    experiment = releases_tree.experiments[args.experiment]
+    print_experiment_metadata(releases_tree, experiment)
 
 
 def list_experiment_packages(releases_tree, args):
