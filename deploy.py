@@ -375,7 +375,7 @@ def _deploy_packages_gz(deployment_path):
         full_pattern = os.path.join(deployment_path, pattern)
         for dirname in glob.iglob(full_pattern):
             package_indices = []
-            for filename in glob.iglob(os.path.join(dirname, '*.ipk')):
+            for filename in sorted(glob.glob(os.path.join(dirname, '*.ipk'))):
                 package_index = opkg.generate_package_index(filename)
                 package_indices.append(package_index)
             index_contents = '\n'.join(package_indices)
