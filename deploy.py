@@ -402,4 +402,9 @@ def _deploy_static(releases_root, deployment_path):
     for filename in glob.iglob(static_pattern):
         if os.path.isdir(filename):
             continue
+        if os.path.islink(filename):
+            destination = os.readlink(filename)
+            source = os.path.join(deployment_path, os.path.basename(filename))
+            os.symlink(destination, source)
+            continue
         shutil.copy2(filename, deployment_path)
