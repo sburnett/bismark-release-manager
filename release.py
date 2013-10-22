@@ -143,16 +143,6 @@ class _BismarkRelease(object):
                                     '%s.ipk' % fingerprinted_package.sha1)
         return None
 
-    def get_upgrade(self, group, package, architecture):
-        for group_package in self._package_upgrades:
-            if group_package.group != group:
-                continue
-            if group_package.name != package:
-                continue
-            if group_package.architecture != architecture:
-                continue
-            return group_package
-
     def update_base_build(self, build):
         for dirname in build.package_directories():
             for filename in glob.iglob(os.path.join(dirname, '*.ipk')):

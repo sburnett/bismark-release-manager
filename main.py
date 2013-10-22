@@ -201,12 +201,6 @@ def create_packages_subcommands(subparsers):
         'list-upgrades', help='list package upgrades for nodes')
     parser_list_upgrades.add_argument(
         'release', type=str, action='store', help='show upgrades from this release (e.g., quirm)')
-    parser_list_upgrades.add_argument(
-        'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
-    parser_list_upgrades.add_argument(
-        'group', type=str, action='store', help='upgrade on this group of routers')
-    parser_list_upgrades.add_argument(
-        'package', nargs='*', type=str, action='store', help='show upgrades of these packages')
     parser_list_upgrades.set_defaults(handler=subcommands.list_upgrades)
 
     parser_remove_extra_package = subparsers.add_parser(

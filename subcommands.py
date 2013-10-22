@@ -140,10 +140,7 @@ def list_releases(releases_tree, args):
 
 
 def list_upgrades(releases_tree, args):
-    upgrades = releases_tree.upgrades(args.release,
-                                      args.architecture,
-                                      args.group,
-                                      args.package)
+    upgrades = releases_tree.upgrades(args.release)
     for upgrade in sorted(upgrades):
         print ' '.join(upgrade)
 

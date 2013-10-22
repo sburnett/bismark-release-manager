@@ -173,40 +173,10 @@ class BismarkReleasesTree(object):
                                                 architecture)
         bismark_release.save()
 
-    def upgrades(self, release_name, architecture, group_name, packages):
-        logging.info('Getting upgrades for architecture %r and release %r',
-                     architecture,
-                     release_name)
+    def upgrades(self, release_name):
         bismark_release = release.open_bismark_release(
             self._release_path(release_name))
-        node_groups = groups.NodeGroups(self._groups_path())
-        if group_name in node_groups:
-            logging.info('Getting upgrades for group %r', group_name)
-            nodes = node_groups[group_name]
-        else:
-            logging.info('Getting upgrades for single node %r', group_name)
-            nodes = set([group_name])
-        upgrades = set()
-        if packages == []:
-            logging.info('Getting upgrades for all builtin packages')
-            for package in bismark_release.builtin_packages:
-                packages.append(package.name)
-        for package in packages:
-            logging.info('Getting upgrades for package %r', package)
-            for node in nodes:
-                node_package = bismark_release.get_upgrade(
-                    node,
-                    package,
-                    architecture)
-                if node_package is None:
-                    logging.info('No upgrades for package %r on node %r '
-                                 'and architecture %r',
-                                 package,
-                                 node,
-                                 architecture)
-                    continue
-                upgrades.add(node_package)
-        return upgrades
+        return bismark_release.package_upgrades
 
     def new_experiment(self, name, display_name, description):
         logging.info('Creating new experiment %s', name)
