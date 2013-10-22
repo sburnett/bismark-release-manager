@@ -73,7 +73,7 @@ For example, to prepare a new release called *djelibeybi* you might run:
 
     brm releases new djelibeybi /data/users/bismark/builds/djelibeybi
 
-where /data/users/bismark/builds/djelibeybi is an OpenWRT buildroot (*i.e.*,
+where `/data/users/bismark/builds/djelibeybi` is an OpenWRT buildroot (*i.e.*,
 contains a `.config`, `feeds.conf`, `build-bismark.sh`, etc.)
 
 This will copy all packages and images from the release into
@@ -87,20 +87,20 @@ Next, save your changes to version control using `brm commit`:
     brm commit
 
 This will commit the files necessary to store a reproducible snapshot of your
-release. You will be prompted to type a commit message.
+release. It will prompt you to type a commit message.
 
 To deploy the release use the `brm deploy` command:
 
     brm deploy /data/users/bismark/downloads
 
-Note that this will deploy *all* releases, not just the djelibeybi release. You
-must deploy it into an empty directory, so be sure to delete (or move) the
+Note that this will deploy *all* releases, not just the *djelibeybi* release.
+You must deploy it into an empty directory, so be sure to delete (or move) the
 contents of `/data/users/bismark/downloads` before deploying the releases. After
-deploying the release, you can copy it to a Web server (*e.g.*,
+deploying the releases, you can copy them to a Web server (*e.g.*,
 `downloads.projectbismark.net`.)
 
-Creating a New Group
---------------------
+Creating New Groups
+-------------------
 
 You can apply actions (*e.g.*, `brm packages upgrade`) on individual routers,
 but it is often easier to create groups of routers. For example, to create a new
@@ -127,8 +127,8 @@ Upgrading a Package
 Suppose you discover a bug `bismark-mgmt` and want to fix it. Because
 `bismark-mgmt` is a builtin package, you can upgrade it using `brm upgrade`.
 
-First, build a new ipk file to fix the problem, making sure to bump the revision
-and/or version number. For example, the `djelibeybi` release might have version
+First, build a new ipk file to fix the problem, making sure to increase the revision
+and/or version number. For example, the *djelibeybi* release might ship with version
 `HEAD-20` of `bismark-mgmt` and your fix could have version `HEAD-21`.
 
 Next, import the upgraded package using `brm packages import`:
@@ -141,7 +141,7 @@ updated package without changing the version number, you will get an error.
 
 Next you must tell `brm` that you wish to use that package as an upgrade on some
 routers using the `brm packages upgrade` command. For example, to upgrade the
-package on *all* routers running the djelibeybi release:
+package on *all* routers running the *djelibeybi* release:
 
     brm packages upgrade djelibeybi ar71xx bismark_mgmt HEAD-21 default
 
@@ -149,29 +149,29 @@ The special keyword *default* refers to *all* routers in the deployment. It
 is often not a good idea to push an upgrade to all routers without first testing
 it. To push the upgrade to a small set of routers:
 
-    brm packages upgrade djelibeybi ar71xx bismark_mgmt HEAD-21 canary
+    brm packages upgrade djelibeybi ar71xx bismark_mgmt HEAD-21 testbed
 
-Here, *canary* is a set of routers operated by members of our research group who
-are less bothered by occasional hiccups.
+Here, *testbed* refers to the group of routers we created earlier.
 
-Run `brm commit` and `brm deploy` to deploy the changes to the router deployment.
+As before, run `brm commit` and `brm deploy` to deploy the changes to the router
+deployment.
 
 Creating a New Experiment
 -------------------------
 
 Suppose you want to install an new measurement experiment called
-`HappinessMonitor`, which tries to measure the general well-being of home
+*HappinessMonitor*, which tries to measure the general well-being of home
 network users. You want to deploy it on a set of routers after they have been
 deployed in the field.
 
 First, build the packages necessary for this experiment. For example,
-`HappinessMonitor` might need a package called `bismark-measure-happiness`. You
+*HappinessMonitor* might need a package called `bismark-measure-happiness`. You
 need to build the package for each release and architecture on which you want it
 to run.
 
 Next, create a new experiment:
 
-    brm experiments new BismarkHappiness
+    brm experiments new HappinessMonitor
 
 This will prompt you to enter a display name for the experiment (*i.e.*, the
 name that we will show to users) and a brief description of the experiment.
@@ -185,22 +185,22 @@ Next, import packages for each release:
 Next, add packages to the experiment. Suppose we want to deploy this experiment
 on a group of households in Atlanta:
 
-    brm experiments add-package BismarkHappiness djelibeybi ar71xx bismark-measure-happiness HEAD-1 atlanta-routers
-    brm experiments add-package BismarkHappiness quirm ar71xx bismark-measure-happiness HEAD-1 atlanta-routers
+    brm experiments add-package HappinessMonitor djelibeybi ar71xx bismark-measure-happiness HEAD-1 atlanta-routers
+    brm experiments add-package HappinessMonitor quirm ar71xx bismark-measure-happiness HEAD-1 atlanta-routers
     ...
 
-If BismarkHappiness contains additional packages or releases , repeat the
+If *HappinessMonitor* contains additional packages or releases, repeat the
 `import` and `add-package` process for each package and release.
 
 By default, users must manually enable experiments using the LuCI Web interface.
 If you want routers to install the experiment automatically:
 
-    brm experiments install-by-default BismarkHappiness atlanta-routers
+    brm experiments install-by-default HappinessMonitor atlanta-routers
 
 Going even further, if you want to prevent users from removing the experiment
 from their router:
 
-    brm experiments require BismarkHappiness atlanta-routers
+    brm experiments require HappinessMonitor atlanta-routers
 
 As always, you must `brm commit` and `brm deploy` to make your changes visible
 to the deployment.
@@ -208,10 +208,10 @@ to the deployment.
 Revoking an Experiment
 ----------------------
 
-Suppose you discover a critical security vulnerability in BismarkHappiness
+Suppose you discover a critical security vulnerability in *HappinessMonitor*
 and want to disable it on all routers while you prepare a fix:
 
-    brm experiments revoke BismarkHappiness atlanta-routers
+    brm experiments revoke HappinessMonitor atlanta-routers
 
 All routers in the `atlanta-routers` group will remove the experiment the next
 time they run `bismark-experiments-manager`, which happens every 12 hours.
@@ -220,11 +220,12 @@ Manually Editing Configurations
 -------------------------------
 
 It can be tedious to manage releases using the command line. Fortunately, it is
-rather easy to edit the configuration files. Here's a summary of the directory
-structure of a sample releases directory (*e.g.*, `~/bismark-releases`):
+easy to edit *some* configuration files in the release. Here's a summary of the
+directory structure of a sample releases directory (*e.g.*,
+`~/bismark-releases`) with annotations of which files it is safe to edit by hand:
 
     experiments/                                       # All files in this directory are easy to edit by hand.
-                BismarkHappiness/                      # One directory for each experiment.
+                HappinessMonitor/                      # One directory for each experiment.
                                  conflicts             # List of conflicting experiments.
                                  description           # A short description of the experiment.
                                  display-name          # The name to show the user (e.g., "BISmark Happiness Monitor")
@@ -243,12 +244,16 @@ structure of a sample releases directory (*e.g.*, `~/bismark-releases`):
                         packages/               # Set of packages available for deployment. Do not add files manually.
                                  507ec3edae8b603d30e808558ffb3e0acc3f6c83.ipk
                                  ...
-                        architectures
-                        builtin-packages
+                        architectures           # Do not edit.
+                        builtin-packages        # Do not edit.
                         extra-packages          # List of packages in the "extra" set. You can edit this file.
-                        fingerprinted-images
-                        fingerprinted-packages
-                        located-images
+                        fingerprinted-images    # Do not edit.
+                        fingerprinted-packages  # Do not edit.
+                        located-images          # Do not edit.
                         package-upgrades        # List of packages to upgrade. You can edit this file.
              quirm/
                         ...
+
+Running `brm deploy` will check for errors in your edited configurations. Keep
+in mind that the releases directory is a git repository, which can helpful for
+recovering old release configurations in case you screw something up.
