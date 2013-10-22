@@ -59,12 +59,13 @@ def _deploy_packages(release, deployment_path):
 
 
 def _deploy_images(release, deployment_path):
-    for located_image in release.images:
+    images_path = release.images_path
+    for image in release.images:
         destination_dir = os.path.join(deployment_path,
                                        release.name,
-                                       located_image.architecture)
+                                       image.architecture)
         common.makedirs(destination_dir)
-        shutil.copy2(located_image.path, destination_dir)
+        shutil.copy2(os.path.join(images_path, image.name), destination_dir)
 
 
 def _deployment_package_paths(release, deployment_path):

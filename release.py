@@ -88,9 +88,6 @@ class _BismarkRelease(object):
         self._fingerprinted_images = common.NamedTupleSet(
             FingerprintedImage,
             self._full_path('fingerprinted-images'))
-        self._located_images = common.NamedTupleSet(
-            LocatedImage,
-            self._full_path('located-images'))
         self._package_upgrades = common.NamedTupleSet(
             GroupPackage,
             self._full_path('package-upgrades'))
@@ -116,12 +113,16 @@ class _BismarkRelease(object):
         return self._packages_path
 
     @property
+    def images_path(self):
+        return self._images_path
+
+    @property
     def package_upgrades(self):
         return self._package_upgrades
 
     @property
     def images(self):
-        return self._located_images
+        return self._fingerprinted_images
 
     @property
     def architectures(self):
@@ -165,8 +166,6 @@ class _BismarkRelease(object):
         shutil.copy2(filename, new_filename)
 
         name = os.path.basename(filename)
-        self._located_images.add(
-            LocatedImage(name, architecture, new_filename))
         sha1 = common.get_fingerprint(new_filename)
         self._fingerprinted_images.add(
             FingerprintedImage(name, architecture, sha1))
@@ -203,7 +202,6 @@ class _BismarkRelease(object):
         self._extra_packages.write_to_file()
         self._fingerprinted_packages.write_to_file()
         self._fingerprinted_images.write_to_file()
-        self._located_images.write_to_file()
         self._package_upgrades.write_to_file()
 
     def check_constraints(self):

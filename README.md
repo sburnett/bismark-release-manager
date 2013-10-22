@@ -249,7 +249,6 @@ directory structure of a sample releases directory (*e.g.*,
                         extra-packages          # List of packages in the "extra" set. You can edit this file.
                         fingerprinted-images    # Do not edit.
                         fingerprinted-packages  # Do not edit.
-                        located-images          # Do not edit.
                         package-upgrades        # List of packages to upgrade. You can edit this file.
              quirm/
                         ...
