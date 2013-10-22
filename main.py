@@ -100,7 +100,8 @@ def create_experiments_subcommands(subparsers):
 
     parser_list_experiment = subparsers.add_parser(
         'list-all', help='list all experiments')
-    parser_list_experiment.set_defaults(handler=subcommands.list_all_experiments)
+    parser_list_experiment.set_defaults(
+        handler=subcommands.list_all_experiments)
 
     parser_list_experiment_packages = subparsers.add_parser(
         'list-packages', help='list packages for an experiment')
