@@ -39,11 +39,11 @@ def generate_package_index(filename):
 
 def read_control_file_from_ipk(filename):
     logging.info('Parsing ipk %r', filename)
-    with tarfile.open(filename, 'r:gz') as tar_handle:
-        control_tar_file = tar_handle.extractfile('./control.tar.gz')
-        with tarfile.open(fileobj=control_tar_file) as control_tar_handle:
-            control_file = control_tar_handle.extractfile('./control')
-            return control_file.read()
+    tar_handle = tarfile.open(filename, 'r:gz')
+    control_tar_file = tar_handle.extractfile('./control.tar.gz')
+    control_tar_handle = tarfile.open(fileobj=control_tar_file)
+    control_file = control_tar_handle.extractfile('./control')
+    return control_file.read()
 
 
 def parse_package_from_control_contents(contents):
