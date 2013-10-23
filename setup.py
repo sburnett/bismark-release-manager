@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='bismark-release-manager',
-    version='1.0.26',
+    version='1.0.27',
     description='Manage releases, packages, experiments and upgrades '
     'for the BISmark deployment.',
     license='MIT License',

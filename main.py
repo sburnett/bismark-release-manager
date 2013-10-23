@@ -63,6 +63,8 @@ def create_experiments_subcommands(subparsers):
     parser_add_to_experiment.add_argument(
         'experiment', type=str, action='store', help='experiment identifier')
     parser_add_to_experiment.add_argument(
+        'group', type=str, action='store', help='enable experiment on this group of routers')
+    parser_add_to_experiment.add_argument(
         'release', type=str, action='store', help='add package for this release (e.g., quirm)')
     parser_add_to_experiment.add_argument(
         'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
@@ -70,8 +72,6 @@ def create_experiments_subcommands(subparsers):
         'package', type=str, action='store', help='name of the package to install')
     parser_add_to_experiment.add_argument(
         'version', type=str, action='store', help='version of the package')
-    parser_add_to_experiment.add_argument(
-        'group', nargs='+', type=str, action='store', help='enable experiment on this group of routers')
     parser_add_to_experiment.set_defaults(
         handler=subcommands.add_to_experiment)
 
@@ -80,6 +80,8 @@ def create_experiments_subcommands(subparsers):
     parser_remove_from_experiment.add_argument(
         'experiment', type=str, action='store', help='experiment identifier')
     parser_remove_from_experiment.add_argument(
+        'group', type=str, action='store', help='remove packages from this group of routers')
+    parser_remove_from_experiment.add_argument(
         'release', type=str, action='store', help='remove package from this release (e.g., quirm)')
     parser_remove_from_experiment.add_argument(
         'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
@@ -87,8 +89,6 @@ def create_experiments_subcommands(subparsers):
         'package', type=str, action='store', help='name of the package')
     parser_remove_from_experiment.add_argument(
         'version', type=str, action='store', help='version of the package')
-    parser_remove_from_experiment.add_argument(
-        'group', nargs='+', type=str, action='store', help='remove packages from this group of routers')
     parser_remove_from_experiment.set_defaults(
         handler=subcommands.remove_from_experiment)
 
@@ -209,11 +209,11 @@ def create_packages_subcommands(subparsers):
     parser_remove_extra_package.add_argument(
         'release', type=str, action='store', help='remove package from this release (e.g., quirm)')
     parser_remove_extra_package.add_argument(
+        'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_remove_extra_package.add_argument(
         'package', type=str, action='store', help='name of the package to remove')
     parser_remove_extra_package.add_argument(
         'version', type=str, action='store', help='version of the package')
-    parser_remove_extra_package.add_argument(
-        'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
     parser_remove_extra_package.set_defaults(
         handler=subcommands.remove_extra_package)
 
@@ -222,16 +222,18 @@ def create_packages_subcommands(subparsers):
     parser_add_extra_package.add_argument(
         'release', type=str, action='store', help='add package from this release (e.g., quirm)')
     parser_add_extra_package.add_argument(
+        'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
+    parser_add_extra_package.add_argument(
         'package', type=str, action='store', help='name of the package to add')
     parser_add_extra_package.add_argument(
         'version', type=str, action='store', help='version of the package')
-    parser_add_extra_package.add_argument(
-        'architecture', type=str, action='store', help='target architecture (e.g., ar71xx)')
     parser_add_extra_package.set_defaults(
         handler=subcommands.add_extra_package)
 
     parser_upgrade_package = subparsers.add_parser(
         'upgrade', help='upgrade a builtin package on a set of routers')
+    parser_upgrade_package.add_argument(
+        'group', type=str, action='store', help='upgrade on this group of routers')
     parser_upgrade_package.add_argument(
         'release', type=str, action='store', help='upgrade package for this release (e.g., quirm)')
     parser_upgrade_package.add_argument(
@@ -240,8 +242,6 @@ def create_packages_subcommands(subparsers):
         'package', type=str, action='store', help='name of the builtin package to upgrade')
     parser_upgrade_package.add_argument(
         'version', type=str, action='store', help='new version of the package')
-    parser_upgrade_package.add_argument(
-        'group', nargs='+', type=str, action='store', help='upgrade on this group of routers')
     parser_upgrade_package.set_defaults(handler=subcommands.upgrade_package)
 
 
