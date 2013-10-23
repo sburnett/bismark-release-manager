@@ -43,6 +43,10 @@ def deploy(releases_tree, args):
     releases_tree.deploy(args.destination)
 
 
+def check(releases_tree, args):
+    releases_tree.check_constraints()
+
+
 def install_by_default(releases_tree, args):
     releases_tree.set_experiment_installed_by_default(args.experiment,
                                                       True,

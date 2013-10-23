@@ -310,6 +310,10 @@ def main():
         'destination', type=str, action='store', help='deploy to this directory')
     parser_deploy.set_defaults(handler=subcommands.deploy)
 
+    parser_deploy = subparsers.add_parser(
+        'check', help='check validity of the release configuration')
+    parser_deploy.set_defaults(handler=subcommands.check)
+
     args = parser.parse_args()
 
     logging.basicConfig(format='%(asctime)s %(message)s',
