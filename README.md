@@ -31,7 +31,7 @@ Basic Concepts
   development, each release candidate is a new release (e.g., lancre-rc1,
   lancre-rc2, etc.) because each release candidate has a new firmware image with
   slightly different software.
-- Every *package* has an associated name, release, architecture, and version. To
+- Every *package* has an associated release, architecture, name, and version. To
   avoid ambiguity, when working with packages, you must always specify all four
   parameters.
 - Every release has a set of *builtin packages*, which are built in to the
@@ -164,13 +164,13 @@ Next you must tell `brm` that you wish to use that package as an upgrade on some
 routers using the `brm packages upgrade` command. For example, to upgrade the
 package on *all* routers running the *djelibeybi* release:
 
-    brm packages upgrade djelibeybi ar71xx bismark_mgmt HEAD-21 default
+    brm packages upgrade default djelibeybi ar71xx bismark_mgmt HEAD-21
 
 The special keyword *default* refers to *all* routers in the deployment. It
 is often not a good idea to push an upgrade to all routers without first testing
 it. To push the upgrade to a small set of routers:
 
-    brm packages upgrade djelibeybi ar71xx bismark_mgmt HEAD-21 testbed
+    brm packages upgrade testbed djelibeybi ar71xx bismark_mgmt HEAD-21
 
 Here, *testbed* refers to the group of routers we created earlier.
 
@@ -205,8 +205,8 @@ Next, import packages for each release:
 Next, add packages to the experiment. Suppose we want to deploy this experiment
 on a group of households in Atlanta:
 
-    brm experiments add-package HappinessMonitor djelibeybi ar71xx bismark-measure-happiness HEAD-1 atlanta-routers
-    brm experiments add-package HappinessMonitor quirm ar71xx bismark-measure-happiness HEAD-1 atlanta-routers
+    brm experiments add-package HappinessMonitor atlanta-routers djelibeybi ar71xx bismark-measure-happiness HEAD-1
+    brm experiments add-package HappinessMonitor atlanta-routers quirm ar71xx bismark-measure-happiness HEAD-1
     ...
 
 If *HappinessMonitor* contains additional packages or releases, repeat the
