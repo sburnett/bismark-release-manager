@@ -21,6 +21,11 @@ Unlike those scripts, `bismark-release-manager`:
 Basic Concepts
 --------------
 
+- The release manager works by making copies of all packages and images from
+  each BISmark release and storing them in git. This means you must *import*
+  packages and images before you can deploy them on
+  `downloads.projectbismark.net`. Luckily, it's easy to import all packages and
+  images from an OpenWRT build directory.
 - A *release* is a version of the BISmark firmware and its associated packages.
   Examples of releases are the klatch, quirm, and lancre releases. During
   development, each release candidate is a new release (e.g., lancre-rc1,
@@ -49,8 +54,9 @@ Basic Concepts
 Basic Options
 -------------
 
-By default, `brm` stores all configuration information in `~/bismark-releases`.
-You can change this with the `--root` flag. For example:
+You use the BISmark Release Manager through a command line tool called `brm`. By
+default, `brm` stores all configuration information in `~/bismark-releases`. You
+can change this with the `--root` flag. For example:
 
     brm --root=/data/users/bismark/releases releases list
 
@@ -59,8 +65,10 @@ using the `--loglevel` flag. For example:
 
     brm --loglevel INFO deploy /data/users/bismark/downloads
 
-Deploying a New Release
------------------------
+Deployment Playbook
+-------------------
+
+### Deploying a New Release
 
 First, prepare a new BISmark release using the OpenWRT buildroot and
 `bismark-openwrt-overlay`.
@@ -99,8 +107,7 @@ contents of `/data/users/bismark/downloads` before deploying the releases. After
 deploying the releases, you can copy them to a Web server (*e.g.*,
 `downloads.projectbismark.net`.)
 
-Creating New Groups
--------------------
+### Creating New Groups
 
 You can apply actions (*e.g.*, `brm packages upgrade`) on individual routers,
 but it is often easier to create groups of routers. For example, to create a new
@@ -121,8 +128,7 @@ and list all groups and their contents:
 
     brm groups list-all
 
-Upgrading a Package
--------------------
+### Upgrading a Package
 
 Suppose you discover a bug `bismark-mgmt` and want to fix it. Because
 `bismark-mgmt` is a builtin package, you can upgrade it using `brm upgrade`.
@@ -156,8 +162,7 @@ Here, *testbed* refers to the group of routers we created earlier.
 As before, run `brm commit` and `brm deploy` to deploy the changes to the router
 deployment.
 
-Creating a New Experiment
--------------------------
+### Creating a New Experiment
 
 Suppose you want to install an new measurement experiment called
 *HappinessMonitor*, which tries to measure the general well-being of home
@@ -205,8 +210,7 @@ from their router:
 As always, you must `brm commit` and `brm deploy` to make your changes visible
 to the deployment.
 
-Revoking an Experiment
-----------------------
+### Revoking an Experiment
 
 Suppose you discover a critical security vulnerability in *HappinessMonitor*
 and want to disable it on all routers while you prepare a fix:
