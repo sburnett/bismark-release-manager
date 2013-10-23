@@ -84,8 +84,8 @@ Deployment Playbook
 
 ### Deploying a New Release
 
-First, prepare a new BISmark release using the OpenWRT buildroot and
-`bismark-openwrt-overlay`.
+First, prepare a new BISmark release using
+[bismark-openwrt-overlay](https://github.com/projectbismark/bismark-openwrt-overlay).
 
 Next, tell `bismark-release-manager` to manage the new release:
 
@@ -124,7 +124,7 @@ deploying the releases, you can copy them to a Web server (*e.g.*,
 ### Creating New Groups
 
 You can apply actions (*e.g.*, `brm packages upgrade`) on individual routers,
-but it is often easier to create groups of routers. For example, to create a new
+but it's often easier to create groups of routers. For example, to create a new
 group of routers representing our development testbed:
 
     brm groups new testbed OW204E7F4A7478 OWC43DC79DE139
@@ -138,14 +138,15 @@ list the contents of a group,
 
     brm groups list testbed
 
-and list all groups and their contents:
+and list all groups and their contents together:
 
     brm groups list-all
 
 ### Upgrading a Package
 
-Suppose you discover a bug `bismark-mgmt` and want to fix it. Because
-`bismark-mgmt` is a builtin package, you can upgrade it using `brm upgrade`.
+Suppose you discover a bug in the `bismark-mgmt` package and want to fix it.
+Because `bismark-mgmt` is a builtin package, you can upgrade it using `brm
+packages upgrade`.
 
 First, build a new ipk file to fix the problem, making sure to increase the revision
 and/or version number. For example, the *djelibeybi* release might ship with version
@@ -240,7 +241,7 @@ Manually Editing Configurations
 It can be tedious to manage releases using the command line. Fortunately, it is
 easy to edit *some* configuration files in the release. Here's a summary of the
 directory structure of a sample releases directory (*e.g.*,
-`~/bismark-releases`) with annotations of which files it is safe to edit by hand:
+`~/bismark-releases`) with annotations of which files are safe to edit by hand:
 
     experiments/                                       # All files in this directory are easy to edit by hand.
                 HappinessMonitor/                      # One directory for each experiment.
