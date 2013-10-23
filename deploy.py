@@ -22,6 +22,9 @@ class NodePackage(_NodePackage):
 
 
 def deploy(releases_root, deployment_path, releases, experiments, node_groups):
+    if len(glob.glob(os.path.join(deployment_path, '*'))) > 0:
+        raise Exception('Must deploy to an empty or nonexistent directory')
+
     common.makedirs(deployment_path)
 
     for release in releases:
