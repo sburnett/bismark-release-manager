@@ -51,6 +51,20 @@ Basic Concepts
   on routers (*e.g.*, whether it should be installed by default, whether the
   user can disable the experiment, etc.)
 
+Installation
+------------
+
+`brm` requires Python 2.7.
+
+You can either run it directly from the git repository:
+
+    python2.7 main.py releases list
+
+or install it using pip:
+
+    pip install --user .
+    PATH="$PATH:~/.local/bin" brm releases list
+
 Basic Options
 -------------
 
