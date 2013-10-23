@@ -177,13 +177,13 @@ def create_packages_subcommands(subparsers):
     parser_list_packages = subparsers.add_parser(
         'list', help='list available packages')
     parser_list_packages.add_argument(
-        'release', type=str, action='store', help='list packages for this release (e.g., quirm)')
+        'release', type=str, nargs='?', action='store', help='list packages for this release (e.g., quirm)')
     parser_list_packages.set_defaults(handler=subcommands.list_packages)
 
     parser_list_builtin_packages = subparsers.add_parser(
         'list-builtin', help='list builtin packages for a release')
     parser_list_builtin_packages.add_argument(
-        'release', type=str, action='store', help='name of the release (e.g., quirm)')
+        'release', type=str, nargs='?', action='store', help='name of the release (e.g., quirm)')
     parser_list_builtin_packages.add_argument(
         'architecture', type=str, nargs='?', action='store', help='target architecture (e.g., ar71xx)')
     parser_list_builtin_packages.set_defaults(
@@ -192,7 +192,7 @@ def create_packages_subcommands(subparsers):
     parser_list_extra_packages = subparsers.add_parser(
         'list-extra', help='list "extra" packages for a release')
     parser_list_extra_packages.add_argument(
-        'release', type=str, action='store', help='name of the release (e.g., quirm)')
+        'release', type=str, nargs='?', action='store', help='name of the release (e.g., quirm)')
     parser_list_extra_packages.add_argument(
         'architecture', type=str, nargs='?', action='store', help='target architecture (e.g., ar71xx)')
     parser_list_extra_packages.set_defaults(
@@ -201,7 +201,7 @@ def create_packages_subcommands(subparsers):
     parser_list_upgrades = subparsers.add_parser(
         'list-upgrades', help='list package upgrades for nodes')
     parser_list_upgrades.add_argument(
-        'release', type=str, action='store', help='show upgrades from this release (e.g., quirm)')
+        'release', type=str, nargs='?', action='store', help='show upgrades from this release (e.g., quirm)')
     parser_list_upgrades.set_defaults(handler=subcommands.list_upgrades)
 
     parser_remove_extra_package = subparsers.add_parser(

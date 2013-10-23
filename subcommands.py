@@ -74,11 +74,16 @@ def list_all_experiments(releases_tree, args):
 
 def list_builtin_packages(releases_tree, args):
     b = StringIO.StringIO()
-    for package in sorted(releases_tree.builtin_packages(args.release)):
-        if (args.architecture is not None and
-                package.architecture != args.architecture):
-            continue
-        print >>b, package.architecture, package.name, package.version
+    if args.release is None:
+        releases = releases_tree.releases
+    else:
+        releases = [args.release]
+    for release_name in releases:
+        for package in sorted(releases_tree.builtin_packages(release_name)):
+            if (args.architecture is not None and
+                    package.architecture != args.architecture):
+                continue
+            print >>b, release_name, package.architecture, package.name, package.version
     print '\n'.join(sorted(b.getvalue().splitlines()))
 
 
@@ -123,12 +128,17 @@ def list_experiment_packages(releases_tree, args):
 
 
 def list_extra_packages(releases_tree, args):
+    if args.release is None:
+        releases = releases_tree.releases
+    else:
+        releases = [args.release]
     b = StringIO.StringIO()
-    for package in releases_tree.extra_packages(args.release):
-        if (args.architecture is not None and
-                package.architecture != args.architecture):
-            continue
-        print >>b, package.architecture, package.name, package.version
+    for release_name in releases:
+        for package in releases_tree.extra_packages(release_name):
+            if (args.architecture is not None and
+                    package.architecture != args.architecture):
+                continue
+            print >>b, release_name, package.architecture, package.name, package.version
     print '\n'.join(sorted(b.getvalue().splitlines()))
 
 
@@ -149,9 +159,14 @@ def list_all_groups(releases_tree, args):
 
 
 def list_packages(releases_tree, args):
+    if args.release is None:
+        releases = releases_tree.releases
+    else:
+        releases = [args.release]
     b = StringIO.StringIO()
-    for package in releases_tree.packages(args.release):
-        print >>b, package.architecture, package.name, package.version
+    for release_name in releases:
+        for package in releases_tree.packages(release_name):
+            print >>b, release_name, package.architecture, package.name, package.version
     print '\n'.join(sorted(b.getvalue().splitlines()))
 
 
@@ -161,9 +176,14 @@ def list_releases(releases_tree, args):
 
 
 def list_upgrades(releases_tree, args):
+    if args.release is None:
+        releases = releases_tree.releases
+    else:
+        releases = [args.release]
     b = StringIO.StringIO()
-    for upgrade in releases_tree.upgrades(args.release):
-        print >>b, upgrade.group, upgrade.architecture, upgrade.name, upgrade.version
+    for release_name in releases:
+        for upgrade in releases_tree.upgrades(release_name):
+            print >>b, upgrade.group, release_name, upgrade.architecture, upgrade.name, upgrade.version
     print '\n'.join(sorted(b.getvalue().splitlines()))
 
 
