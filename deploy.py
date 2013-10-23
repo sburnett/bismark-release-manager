@@ -314,7 +314,7 @@ def _deploy_experiment_configurations(release,
             packages = normalized_bodies['default']
         else:
             continue
-        for architecture, experiment, name in packages:
+        for architecture, experiment, name in sorted(packages):
             if experiment not in configurations[architecture, node]:
                 if node in normalized_headers and experiment in normalized_headers[node]:
                     headers = normalized_headers[node][experiment]
