@@ -103,6 +103,9 @@ def list_experiment(releases_tree, args):
 
     experiment = releases_tree.experiments[args.experiment]
     print_experiment_metadata(releases_tree, experiment)
+    print 'Packages:'
+    for package in sorted(releases_tree.experiment_packages(args.experiment)):
+        print ' ', ' '.join(package)
 
 
 def list_experiment_packages(releases_tree, args):
