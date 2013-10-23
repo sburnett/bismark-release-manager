@@ -33,7 +33,9 @@ def makedirs(path):
         else:
             raise
 
+
 class ColumnFormatter(object):
+
     def __init__(self, prefix=''):
         self._buffer = StringIO.StringIO()
         self._prefix = prefix

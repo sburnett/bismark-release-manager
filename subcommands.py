@@ -2,6 +2,7 @@ import os
 
 import common
 
+
 def add_extra_package(releases_tree, args):
     releases_tree.add_extra_package(args.release,
                                     args.package,
