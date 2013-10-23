@@ -1,8 +1,11 @@
+from collections import defaultdict
 import csv
 import errno
 import hashlib
 import logging
 import os
+import StringIO
+import sys
 
 
 def get_fingerprint(filename):
@@ -29,6 +32,37 @@ def makedirs(path):
             pass
         else:
             raise
+
+class ColumnFormatter(object):
+    def __init__(self, prefix=''):
+        self._buffer = StringIO.StringIO()
+        self._prefix = prefix
+
+    def write(self, s):
+        self._buffer.write(s)
+
+    def close(self):
+        lines = self._buffer.getvalue().splitlines()
+        lines.sort()
+
+        column_widths = defaultdict(int)
+        for line in lines:
+            words = line.split()
+            for c, word in enumerate(words):
+                column_widths[c] = max(column_widths[c], len(word))
+        for line in lines:
+            words = line.split()
+            sys.stdout.write(self._prefix)
+            for c, word in enumerate(words):
+                format_string = '%%-%ds' % column_widths[c]
+                print format_string % word,
+            print
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
 
 
 class NamedTupleSet(set):

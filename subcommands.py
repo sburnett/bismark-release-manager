@@ -1,6 +1,6 @@
 import os
-import StringIO
 
+import common
 
 def add_extra_package(releases_tree, args):
     releases_tree.add_extra_package(args.release,
@@ -65,26 +65,24 @@ def list_all_experiments(releases_tree, args):
         print_experiment_metadata(releases_tree, experiment)
 
         print 'Packages:'
-        b = StringIO.StringIO()
-        for package in sorted(experiment.packages):
-            print >>b, ' ', package.group, package.release, package.architecture, package.name, package.version
-        print '\n'.join(sorted(b.getvalue().splitlines()))
+        with common.ColumnFormatter(prefix='  ') as f:
+            for package in sorted(experiment.packages):
+                print >>f, ' ', package.group, package.release, package.architecture, package.name, package.version
         print
 
 
 def list_builtin_packages(releases_tree, args):
-    b = StringIO.StringIO()
     if args.release is None:
         releases = releases_tree.releases
     else:
         releases = [args.release]
-    for release_name in releases:
-        for package in sorted(releases_tree.builtin_packages(release_name)):
-            if (args.architecture is not None and
-                    package.architecture != args.architecture):
-                continue
-            print >>b, release_name, package.architecture, package.name, package.version
-    print '\n'.join(sorted(b.getvalue().splitlines()))
+    with common.ColumnFormatter() as f:
+        for release_name in releases:
+            for package in sorted(releases_tree.builtin_packages(release_name)):
+                if (args.architecture is not None and
+                        package.architecture != args.architecture):
+                    continue
+                print >>f, release_name, package.architecture, package.name, package.version
 
 
 def print_experiment_metadata(releases_tree, experiment):
@@ -114,17 +112,15 @@ def list_experiment(releases_tree, args):
     experiment = releases_tree.experiments[args.experiment]
     print_experiment_metadata(releases_tree, experiment)
     print 'Packages:'
-    b = StringIO.StringIO()
-    for package in sorted(releases_tree.experiment_packages(args.experiment)):
-        print >>b, ' ', package.group, package.release, package.architecture, package.name, package.version
-    print '\n'.join(sorted(b.getvalue().splitlines()))
+    with common.ColumnFormatter(prefix='  ') as f:
+        for package in sorted(releases_tree.experiment_packages(args.experiment)):
+            print >>f, ' ', package.group, package.release, package.architecture, package.name, package.version
 
 
 def list_experiment_packages(releases_tree, args):
-    b = StringIO.StringIO()
-    for package in sorted(releases_tree.experiment_packages(args.experiment)):
-        print >>b, package.group, package.release, package.architecture, package.name, package.version
-    print '\n'.join(sorted(b.getvalue().splitlines()))
+    with common.ColumnFormatter() as f:
+        for package in sorted(releases_tree.experiment_packages(args.experiment)):
+            print >>f, package.group, package.release, package.architecture, package.name, package.version
 
 
 def list_extra_packages(releases_tree, args):
@@ -132,14 +128,13 @@ def list_extra_packages(releases_tree, args):
         releases = releases_tree.releases
     else:
         releases = [args.release]
-    b = StringIO.StringIO()
-    for release_name in releases:
-        for package in releases_tree.extra_packages(release_name):
-            if (args.architecture is not None and
-                    package.architecture != args.architecture):
-                continue
-            print >>b, release_name, package.architecture, package.name, package.version
-    print '\n'.join(sorted(b.getvalue().splitlines()))
+    with common.ColumnFormatter() as f:
+        for release_name in releases:
+            for package in releases_tree.extra_packages(release_name):
+                if (args.architecture is not None and
+                        package.architecture != args.architecture):
+                    continue
+                print >>f, release_name, package.architecture, package.name, package.version
 
 
 def list_group(releases_tree, args):
@@ -163,11 +158,10 @@ def list_packages(releases_tree, args):
         releases = releases_tree.releases
     else:
         releases = [args.release]
-    b = StringIO.StringIO()
-    for release_name in releases:
-        for package in releases_tree.packages(release_name):
-            print >>b, release_name, package.architecture, package.name, package.version
-    print '\n'.join(sorted(b.getvalue().splitlines()))
+    with common.ColumnFormatter() as f:
+        for release_name in releases:
+            for package in releases_tree.packages(release_name):
+                print >>f, release_name, package.architecture, package.name, package.version
 
 
 def list_releases(releases_tree, args):
@@ -180,11 +174,10 @@ def list_upgrades(releases_tree, args):
         releases = releases_tree.releases
     else:
         releases = [args.release]
-    b = StringIO.StringIO()
-    for release_name in releases:
-        for upgrade in releases_tree.upgrades(release_name):
-            print >>b, upgrade.group, release_name, upgrade.architecture, upgrade.name, upgrade.version
-    print '\n'.join(sorted(b.getvalue().splitlines()))
+    with common.ColumnFormatter() as f:
+        for release_name in releases:
+            for upgrade in releases_tree.upgrades(release_name):
+                print >>f, upgrade.group, release_name, upgrade.architecture, upgrade.name, upgrade.version
 
 
 def new_experiment(releases_tree, args):
