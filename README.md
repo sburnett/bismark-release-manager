@@ -77,7 +77,7 @@ can change this with the `--root` flag. For example:
 If you encounter problems, it can be useful to enable more detailed logging
 using the `--loglevel` flag. For example:
 
-    brm --loglevel INFO deploy /data/users/bismark/downloads
+    brm --loglevel INFO deploy
 
 Deployment Playbook
 -------------------
@@ -113,13 +113,14 @@ release. It will prompt you to type a commit message.
 
 To deploy the release use the `brm deploy` command:
 
-    brm deploy /data/users/bismark/downloads
+    brm deploy
 
-Note that this will deploy *all* releases, not just the *djelibeybi* release.
-You must deploy it into an empty directory, so be sure to delete (or move) the
-contents of `/data/users/bismark/downloads` before deploying the releases. After
-deploying the releases, you can copy them to a Web server (*e.g.*,
-`downloads.projectbismark.net`.)
+Note that this will deploy *all* releases to
+http://downloads.projectbismark.net, not just the *djelibeybi* release. The
+script will deploy to a staging directory in `/tmp`, show you a diff between the
+staging directory and the destination, then ask you whether you want to proceed
+with deployment.
+
 
 ### Creating New Groups
 
