@@ -78,3 +78,8 @@ If you encounter problems, it can be useful to enable more detailed logging
 using the `--loglevel` flag. For example:
 
     brm --loglevel INFO deploy
+    
+Tutorial
+--------
+
+[How to perform common deployment tasks](USAGE.md).
