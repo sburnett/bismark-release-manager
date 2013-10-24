@@ -5,6 +5,8 @@ import logging
 import os
 import shutil
 import StringIO
+import subprocess
+import tempfile
 
 import common
 import opkg
@@ -21,11 +23,9 @@ class NodePackage(_NodePackage):
         return bismark_release.Package(self.name, self.version, self.architecture)
 
 
-def deploy(releases_root, deployment_path, releases, experiments, node_groups):
-    if len(glob.glob(os.path.join(deployment_path, '*'))) > 0:
-        raise Exception('Must deploy to an empty or nonexistent directory')
-
-    common.makedirs(deployment_path)
+def deploy(releases_root, destination, releases, experiments, node_groups):
+    deployment_path = tempfile.mkdtemp(prefix='bismark-downloads-staging-')
+    logging.info('staging deployment in %s', deployment_path)
 
     for release in releases:
         _deploy_packages(release, deployment_path)
@@ -46,6 +46,23 @@ def deploy(releases_root, deployment_path, releases, experiments, node_groups):
     _deploy_packages_gz(deployment_path)
     _deploy_upgradable_sentinels(deployment_path)
     _deploy_static(releases_root, deployment_path)
+
+    print 'The following files differ at the destination:'
+    _diff_from_destination(deployment_path, destination)
+
+    deploy_response = raw_input('\nDeploy to %s? (y/N) ' % (destination,))
+    if deploy_response == 'y':
+        print 'Deploying from %s to %s' % (deployment_path, destination)
+        _copy_to_destination(deployment_path, destination)
+    else:
+        print 'Skipping deployment'
+    clean_response = raw_input(
+        '\nDelete staging directory %s? (Y/n) ' % (deployment_path,))
+    if clean_response != 'n':
+        print 'Removing staging directory %s' % (deployment_path,)
+        shutil.rmtree(deployment_path)
+    else:
+        print 'Staging directory %s left intact' % (deployment_path,)
 
 
 def _deploy_packages(release, deployment_path):
@@ -413,3 +430,16 @@ def _deploy_static(releases_root, deployment_path):
             os.symlink(destination, source)
             continue
         shutil.copy2(filename, deployment_path)
+
+
+def _diff_from_destination(deployment_path, destination):
+    command = 'rsync -n -cvlrz --delete %s/ %s' % (
+        deployment_path, destination)
+    if subprocess.call(command, shell=True) != 0:
+        raise Exception('rsync exited with an error')
+
+
+def _copy_to_destination(deployment_path, destination):
+    command = 'rsync -cvaz --delete %s/ %s' % (deployment_path, destination)
+    if subprocess.call(command, shell=True) != 0:
+        raise Exception('rsync exited with an error')

@@ -305,9 +305,13 @@ def main():
         'diff', help='show changes ready to be committed to git')
     parser_diff.set_defaults(handler=subcommands.diff)
 
-    parser_deploy = subparsers.add_parser('deploy', help='deploy all releases')
+    parser_deploy = subparsers.add_parser('deploy',
+        help='deploy all releases',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser_deploy.add_argument(
-        'destination', type=str, action='store', help='deploy to this directory')
+            '-d', '--destination', type=str,
+            default='bismark-downloads.noise.gatech.edu:/var/www/downloads.projectbismark.net',
+            action='store', help='deploy to this directory')
     parser_deploy.set_defaults(handler=subcommands.deploy)
 
     parser_deploy = subparsers.add_parser(
