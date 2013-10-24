@@ -144,7 +144,7 @@ class BismarkReleasesTree(object):
                         name,
                         version,
                         architecture,
-                        group_names):
+                        group_name):
         logging.info('Upgrading package %r to version %r '
                      'on architecture %r for release %r',
                      name,
@@ -154,23 +154,22 @@ class BismarkReleasesTree(object):
         bismark_release = release.open_bismark_release(
             self._release_path(release_name))
         node_groups = groups.NodeGroups(self._groups_path())
-        for group_name in group_names:
-            if group_name in node_groups:
-                logging.info('Upgrading group %r', group_name)
-                for node in node_groups[group_name]:
-                    logging.info('Upgrading node %r in group %r',
-                                 node,
-                                 group_name)
-                    bismark_release.upgrade_package(node,
-                                                    name,
-                                                    version,
-                                                    architecture)
-            else:
-                logging.info('Upgrading node %r', group_name)
-                bismark_release.upgrade_package(group_name,
+        if group_name in node_groups:
+            logging.info('Upgrading group %r', group_name)
+            for node in node_groups[group_name]:
+                logging.info('Upgrading node %r in group %r',
+                             node,
+                             group_name)
+                bismark_release.upgrade_package(node,
                                                 name,
                                                 version,
                                                 architecture)
+        else:
+            logging.info('Upgrading node %r', group_name)
+            bismark_release.upgrade_package(group_name,
+                                            name,
+                                            version,
+                                            architecture)
         bismark_release.save()
 
     def upgrades(self, release_name):
