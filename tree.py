@@ -153,23 +153,10 @@ class BismarkReleasesTree(object):
                      release_name)
         bismark_release = release.open_bismark_release(
             self._release_path(release_name))
-        node_groups = groups.NodeGroups(self._groups_path())
-        if group_name in node_groups:
-            logging.info('Upgrading group %r', group_name)
-            for node in node_groups[group_name]:
-                logging.info('Upgrading node %r in group %r',
-                             node,
-                             group_name)
-                bismark_release.upgrade_package(node,
-                                                name,
-                                                version,
-                                                architecture)
-        else:
-            logging.info('Upgrading node %r', group_name)
-            bismark_release.upgrade_package(group_name,
-                                            name,
-                                            version,
-                                            architecture)
+        bismark_release.upgrade_package(group_name,
+                                        name,
+                                        version,
+                                        architecture)
         bismark_release.save()
 
     def upgrades(self, release_name):
