@@ -57,14 +57,16 @@ def deploy(releases_root, destination, releases, experiments, node_groups):
     _deploy_static(releases_root, deployment_path)
 
     print 'The following files differ at the destination:'
-    _diff_from_destination(deployment_path, destination)
+    diff_success = _diff_from_destination(deployment_path, destination)
 
-    deploy_response = raw_input('\nDeploy to %s? (y/N) ' % (destination,))
-    if deploy_response == 'y':
-        print 'Deploying from %s to %s' % (deployment_path, destination)
-        _copy_to_destination(deployment_path, destination)
-    else:
-        print 'Skipping deployment'
+    if diff_success:
+        deploy_response = raw_input('\nDeploy to %s? (y/N) ' % (destination,))
+        if deploy_response == 'y':
+            print 'Deploying from %s to %s' % (deployment_path, destination)
+            _copy_to_destination(deployment_path, destination)
+        else:
+            print 'Skipping deployment'
+
     clean_response = raw_input(
         '\nDelete staging directory %s? (Y/n) ' % (deployment_path,))
     if clean_response != 'n':
@@ -445,10 +447,13 @@ def _diff_from_destination(deployment_path, destination):
     command = 'rsync -n -cvlrz --delete %s/ %s' % (
         deployment_path, destination)
     if subprocess.call(command, shell=True) != 0:
-        raise Exception('rsync exited with an error')
+        print 'rsync exited with error code %d' % return_code
+        return False
+    return True
 
 
 def _copy_to_destination(deployment_path, destination):
     command = 'rsync -cvaz --delete %s/ %s' % (deployment_path, destination)
-    if subprocess.call(command, shell=True) != 0:
-        raise Exception('rsync exited with an error')
+    return_code = subprocess.call(command, shell=True)
+    if return_code != 0:
+        print 'rsync exited with error code %d' % return_code
