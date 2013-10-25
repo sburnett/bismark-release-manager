@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import StringIO
+import stat
 import subprocess
 import tempfile
 
@@ -26,6 +27,14 @@ class NodePackage(_NodePackage):
 def deploy(releases_root, destination, releases, experiments, node_groups):
     deployment_path = tempfile.mkdtemp(prefix='bismark-downloads-staging-')
     logging.info('staging deployment in %s', deployment_path)
+
+    # Fix permissons of the deployment path. mkdtemp gives 700 permissions,
+    # and rsync will copy those permissions to the Web server, so we end
+    # up with permission denied errors unless we fix permissions here.
+    user_perms = stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR
+    group_perms = stat.S_IRGRP | stat.S_IXGRP
+    other_perms = stat.S_IROTH | stat.S_IXOTH
+    os.chmod(deployment_path, user_perms | group_perms | other_perms)
 
     for release in releases:
         _deploy_packages(release, deployment_path)
