@@ -117,6 +117,14 @@ class BismarkReleasesTree(object):
         node_groups.new_group(name)
         node_groups.write_to_files()
 
+    def copy_group(self, name, new_name):
+        logging.info('Creating group %r', name)
+        node_groups = groups.NodeGroups(self._groups_path())
+        node_groups.new_group(new_name)
+        for node in node_groups[name]:
+            node_groups[new_name].add(node)
+        node_groups.write_to_files()
+
     def delete_group(self, name):
         logging.info('Deleting group %r', name)
         node_groups = groups.NodeGroups(self._groups_path())

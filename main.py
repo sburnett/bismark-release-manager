@@ -27,6 +27,14 @@ def create_groups_subcommands(subparsers):
         'node', nargs='*', type=str, action='store', help='nodes to add')
     parser_new_group.set_defaults(handler=subcommands.new_group)
 
+    parser_copy_group = subparsers.add_parser(
+        'copy', help='copy a group of nodes')
+    parser_copy_group.add_argument(
+        'name', type=str, action='store', help='name of the group to copy')
+    parser_copy_group.add_argument(
+        'new_name', type=str, action='store', help='name of the new copy')
+    parser_copy_group.set_defaults(handler=subcommands.copy_group)
+
     parser_delete_group = subparsers.add_parser(
         'delete', help='delete a group of nodes')
     parser_delete_group.add_argument(
