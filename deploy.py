@@ -24,7 +24,12 @@ class NodePackage(_NodePackage):
         return bismark_release.Package(self.name, self.version, self.architecture)
 
 
-def deploy(releases_root, destination, releases, experiments, node_groups):
+def deploy(releases_root,
+           destination,
+           signing_key,
+           releases,
+           experiments,
+           node_groups):
     deployment_path = tempfile.mkdtemp(prefix='bismark-downloads-staging-')
     logging.info('staging deployment in %s', deployment_path)
 
@@ -53,6 +58,7 @@ def deploy(releases_root, destination, releases, experiments, node_groups):
     _make_dummy_directories(deployment_path)
     _deploy_dummy_experiment_configurations(deployment_path)
     _deploy_packages_gz(deployment_path)
+    _deploy_packages_sig(deployment_path, signing_key)
     _deploy_upgradable_sentinels(deployment_path)
     _deploy_static(releases_root, deployment_path)
 
@@ -415,6 +421,29 @@ def _deploy_packages_gz(deployment_path):
             handle.write(index_contents)
             handle.close()
 
+def _deploy_packages_sig(deployment_path, signing_key):
+    patterns = [
+        '*/*/experiments',
+        '*/*/experiments-device/*',
+        '*/*/packages',
+        '*/*/updates',
+        '*/*/updates-device/*',
+    ]
+    for pattern in patterns:
+        full_pattern = os.path.join(deployment_path, pattern)
+        for dirname in glob.iglob(full_pattern):
+            packages_gz_filename = os.path.join(dirname, 'Packages.gz')
+            if not os.path.isfile(packages_gz_filename):
+                continue
+            in_handle = gzip.open(packages_gz_filename, 'rb')
+            packages_sig_filename = os.path.join(dirname, 'Packages.sig')
+            out_handle = open(packages_sig_filename, 'w')
+            command = 'openssl smime -sign -signer %s -binary -outform PEM' % (
+                    signing_key)
+            subprocess.call(command,
+                            stdin=in_handle,
+                            stdout=out_handle,
+                            shell=True)
 
 def _deploy_upgradable_sentinels(deployment_path):
     patterns = [

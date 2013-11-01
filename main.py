@@ -320,6 +320,10 @@ def main():
         '-d', '--destination', type=str,
         default='bismark-downloads.noise.gatech.edu:/var/www/downloads.projectbismark.net',
         action='store', help='deploy to this directory')
+    parser_deploy.add_argument(
+        '-k', '--signingkey', type=str,
+        default='~/.bismark_signing_key.pem',
+        action='store', help='sign Packages.gz with this key')
     parser_deploy.set_defaults(handler=subcommands.deploy)
 
     parser_deploy = subparsers.add_parser(

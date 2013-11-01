@@ -44,7 +44,7 @@ def delete_group(releases_tree, args):
 
 
 def deploy(releases_tree, args):
-    releases_tree.deploy(args.destination)
+    releases_tree.deploy(args.destination, args.signingkey)
 
 
 def check(releases_tree, args):
