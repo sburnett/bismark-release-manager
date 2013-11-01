@@ -254,7 +254,7 @@ class BismarkReleasesTree(object):
         self._stage_changes()
         subprocess.call(['git', 'diff', '--cached'])
 
-    def deploy(self, destination):
+    def deploy(self, destination, signing_key):
         self.check_constraints()
         node_groups = groups.NodeGroups(self._groups_path())
         releases = []
@@ -264,6 +264,7 @@ class BismarkReleasesTree(object):
             releases.append(bismark_release)
         deploy.deploy(self._root,
                       destination,
+                      signing_key,
                       releases,
                       self._experiments,
                       node_groups)

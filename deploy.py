@@ -421,7 +421,16 @@ def _deploy_packages_gz(deployment_path):
             handle.write(index_contents)
             handle.close()
 
+
 def _deploy_packages_sig(deployment_path, signing_key):
+    signing_key_path = os.path.expanduser(signing_key)
+    if not os.path.isfile(signing_key_path):
+        raise Exception('Cannot find signing key %r' % (signing_key_path,))
+
+    if stat.S_IMODE(os.stat(signing_key_path).st_mode) != 0400:
+        raise Exception('For security, %r must have 0400 permissions' % (
+            signing_key_path,))
+
     patterns = [
         '*/*/experiments',
         '*/*/experiments-device/*',
@@ -439,11 +448,13 @@ def _deploy_packages_sig(deployment_path, signing_key):
             packages_sig_filename = os.path.join(dirname, 'Packages.sig')
             out_handle = open(packages_sig_filename, 'w')
             command = 'openssl smime -sign -signer %s -binary -outform PEM' % (
-                    signing_key)
-            subprocess.call(command,
-                            stdin=in_handle,
-                            stdout=out_handle,
-                            shell=True)
+                signing_key_path)
+            if subprocess.call(command,
+                               stdin=in_handle,
+                               stdout=out_handle,
+                               shell=True) != 0:
+                raise Exception('Error signing Packages.gz')
+
 
 def _deploy_upgradable_sentinels(deployment_path):
     patterns = [
