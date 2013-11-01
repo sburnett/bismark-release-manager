@@ -449,10 +449,13 @@ def _deploy_packages_sig(deployment_path, signing_key):
             out_handle = open(packages_sig_filename, 'w')
             command = 'openssl smime -sign -signer %s -binary -outform PEM' % (
                 signing_key_path)
-            if subprocess.call(command,
-                               stdin=in_handle,
-                               stdout=out_handle,
-                               shell=True) != 0:
+            return_code = subprocess.call(command,
+                                          stdin=in_handle,
+                                          stdout=out_handle,
+                                          shell=True)
+            if return_code != 0:
+                logging.error('openssl smime exited with error code %s',
+                              return_code)
                 raise Exception('Error signing Packages.gz')
 
 
@@ -486,7 +489,8 @@ def _deploy_static(releases_root, deployment_path):
 def _diff_from_destination(deployment_path, destination):
     command = 'rsync -n -cvlrz --delete %s/ %s' % (
         deployment_path, destination)
-    if subprocess.call(command, shell=True) != 0:
+    return_code = subprocess.call(command, shell=True)
+    if return_code != 0:
         print 'rsync exited with error code %d' % return_code
         return False
     return True
