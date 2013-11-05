@@ -282,6 +282,8 @@ def main():
     log_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITITCAL']
     parser.add_argument('--loglevel', dest='loglevel', action='store',
                         choices=log_levels, default='WARNING', help='control verbosity of logging')
+    parser.add_argument('--logfile', dest='logfile', action='store',
+                        default=None, help='append logs to this file')
     subparsers = parser.add_subparsers(title='commands')
 
     parser_groups = subparsers.add_parser(
@@ -334,6 +336,7 @@ def main():
 
     logging.basicConfig(format='%(asctime)s %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p',
+                        filename=args.logfile,
                         level=getattr(logging, args.loglevel))
 
     releases_tree = tree.BismarkReleasesTree(os.path.expanduser(args.root))
