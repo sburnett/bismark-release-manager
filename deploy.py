@@ -444,7 +444,7 @@ def _deploy_packages_sig(deployment_path, signing_key):
             packages_gz_filename = os.path.join(dirname, 'Packages.gz')
             if not os.path.isfile(packages_gz_filename):
                 continue
-            in_handle = gzip.open(packages_gz_filename, 'rb')
+            in_handle = open(packages_gz_filename, 'r')
             packages_sig_filename = os.path.join(dirname, 'Packages.sig')
             out_handle = open(packages_sig_filename, 'w')
             command = 'openssl smime -sign -signer %s -binary -outform PEM' % (
