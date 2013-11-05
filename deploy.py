@@ -444,15 +444,10 @@ def _deploy_packages_sig(deployment_path, signing_key):
             packages_gz_filename = os.path.join(dirname, 'Packages.gz')
             if not os.path.isfile(packages_gz_filename):
                 continue
-            in_handle = open(packages_gz_filename, 'r')
             packages_sig_filename = os.path.join(dirname, 'Packages.sig')
-            out_handle = open(packages_sig_filename, 'w')
-            command = 'openssl smime -sign -signer %s -binary -outform PEM' % (
-                signing_key_path)
-            return_code = subprocess.call(command,
-                                          stdin=in_handle,
-                                          stdout=out_handle,
-                                          shell=True)
+            command = 'openssl smime -in %s -sign -signer %s -binary -outform PEM -out %s' % (
+                packages_gz_filename, signing_key_path, packages_sig_filename)
+            return_code = subprocess.call(command, shell=True)
             if return_code != 0:
                 logging.error('openssl smime exited with error code %s',
                               return_code)
