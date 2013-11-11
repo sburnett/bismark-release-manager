@@ -144,7 +144,7 @@ def _deploy_extra_packages(release, deployment_path):
             link_dir = os.path.join(deployment_path,
                                     release.name,
                                     architecture,
-                                    'packages')
+                                    'extra-packages')
             common.makedirs(link_dir)
             link_name = os.path.join(link_dir, os.path.basename(source))
             relative_source = os.path.relpath(source, link_dir)
@@ -404,6 +404,7 @@ def _deploy_packages_gz(deployment_path):
     patterns = [
         '*/*/experiments',
         '*/*/experiments-device/*',
+        '*/*/extra-packages',
         '*/*/packages',
         '*/*/updates',
         '*/*/updates-device/*',
@@ -434,6 +435,7 @@ def _deploy_packages_sig(deployment_path, signing_key):
     patterns = [
         '*/*/experiments',
         '*/*/experiments-device/*',
+        '*/*/extra-packages',
         '*/*/packages',
         '*/*/updates',
         '*/*/updates-device/*',
