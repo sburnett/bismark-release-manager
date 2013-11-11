@@ -3,6 +3,8 @@ import glob
 import logging
 import os
 import shutil
+import tempfile
+import urllib2
 
 import common
 import opkg
@@ -150,7 +152,18 @@ class _BismarkRelease(object):
                 self.add_package(filename)
         self._fingerprint_packages()
 
-    def add_package(self, filename):
+    def add_package(self, import_path):
+        if os.path.exists(import_path):
+            self._add_package_real(import_path)
+        else:
+            logging.info("%s doesn't exist, so treating it as a URL.", import_path)
+            with tempfile.NamedTemporaryFile(delete=True) as new_file:
+                url_data = urllib2.urlopen(import_path)
+                new_file.write(url_data.read())
+                new_file.flush()
+                self._add_package_real(new_file.name)
+
+    def _add_package_real(self, filename):
         common.makedirs(self._packages_path)
         new_basename = '%s.ipk' % common.get_fingerprint(filename)
         new_filename = os.path.join(self._packages_path, new_basename)
