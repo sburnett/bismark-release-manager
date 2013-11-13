@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 import shutil
+import stat
 import tempfile
 import urllib2
 
@@ -168,6 +169,8 @@ class _BismarkRelease(object):
         new_basename = '%s.ipk' % common.get_fingerprint(filename)
         new_filename = os.path.join(self._packages_path, new_basename)
         shutil.copy2(filename, new_filename)
+        os.chmod(new_filename,
+                 stat.S_IRUSR | stat.S_IWUSER | stat.S_IRGRP | stat.S_IROTH)
 
         fingerprinted_package = opkg.fingerprint_package(new_filename)
         self._fingerprinted_packages.add(fingerprinted_package)
