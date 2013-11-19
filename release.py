@@ -170,7 +170,7 @@ class _BismarkRelease(object):
         new_filename = os.path.join(self._packages_path, new_basename)
         shutil.copy2(filename, new_filename)
         os.chmod(new_filename,
-                 stat.S_IRUSR | stat.S_IWUSER | stat.S_IRGRP | stat.S_IROTH)
+                 stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)
 
         fingerprinted_package = opkg.fingerprint_package(new_filename)
         self._fingerprinted_packages.add(fingerprinted_package)
