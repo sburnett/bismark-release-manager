@@ -32,6 +32,13 @@ or install it using pip:
     pip install --user .
     PATH="$PATH:~/.local/bin" brm releases list
 
+Installing or upgrading on NOISE machines
+-----------------------------------------
+
+    source /data/users/bismark/bismark-release-manager/bin/activate
+    pip install git+git://github.com/sburnett/bismark-release-manager
+
+
 Basic Concepts
 --------------
 
