@@ -168,7 +168,7 @@ def _resolve_groups_to_nodes(node_groups, group_packages):
     for package in node_packages:
         key = (package.node, package.name, package.architecture)
         if key in packages_per_node:
-            raise Exception('Conflicting package versions for a node')
+            raise Exception('Conflicting package versions for a node: %s' % (key,))
         packages_per_node.add(key)
 
     return node_packages
