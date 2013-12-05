@@ -323,7 +323,7 @@ def _normalized_configuration_bodies(release, experiments, node_groups):
                         package.architecture)
                     for architecture in architectures:
                         key = architecture, experiment, package.name
-                        if key in bodies[node]:
+                        if key in bodies[node] and bodies[node][key] != package:
                             raise Exception(
                                     'conflicting packages for experiment: %s' % (key,))
                         bodies[node][key] = package
