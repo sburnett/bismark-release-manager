@@ -325,7 +325,7 @@ def _normalized_configuration_bodies(release, experiments, node_groups):
                         key = architecture, experiment, package.name
                         if key in bodies[node]:
                             raise Exception(
-                                'conflicting packages for experiment')
+                                    'conflicting packages for experiment: %s' % (key,))
                         bodies[node][key] = package
     return _normalize_default_experiments(bodies)
 
