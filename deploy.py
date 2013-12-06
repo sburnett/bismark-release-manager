@@ -299,7 +299,8 @@ def _normalized_configuration_headers(experiments, node_groups):
     for group, headers in group_configuration_headers.items():
         for node in node_groups.resolve_to_nodes(group):
             for experiment, header in headers.items():
-                if experiment in node_configuration_headers[node]:
+                if (experiment in node_configuration_headers[node] and
+                        node_configuration_headers[node][experiment] != header):
                     raise Exception('conflicting experiment defintions')
                 node_configuration_headers[node][experiment] = header
     return _normalize_default_experiments(node_configuration_headers)
