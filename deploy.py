@@ -486,7 +486,7 @@ def _deploy_static(releases_root, deployment_path):
 
 
 def _diff_from_destination(deployment_path, destination):
-    command = 'rsync -n -cvlrz --exclude=Packages.sig --delete %s/ %s' % (
+    command = 'rsync -n -icvlrz --exclude=Packages.sig --delete %s/ %s' % (
         deployment_path, destination)
     logging.info('Going to run: %s', command)
     return_code = subprocess.call(command, shell=True)
